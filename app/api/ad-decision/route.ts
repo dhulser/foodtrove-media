@@ -15,14 +15,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchAdDecision, getWinner } from "@/lib/kevel";
 
 export async function POST(request: NextRequest) {
-  let body: { placementId?: string; siteId?: number; adTypes?: number[]; size?: string };
+  let body: { placementId?: string; siteId?: number; adTypes?: number[]; size?: string; keywords?: string[] };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ filled: false, reason: "invalid-request" }, { status: 400 });
   }
 
-  const { placementId, siteId, adTypes, size } = body;
+  const { placementId, siteId, adTypes, size, keywords: callerKeywords } = body;
 
   if (!placementId) {
     return NextResponse.json({ filled: false, reason: "missing-placement-id" }, { status: 400 });
@@ -46,12 +46,19 @@ export async function POST(request: NextRequest) {
   // Keywords route ad requests to the correct Kevel flight by format.
   // Billboard flight (863187467) requires "ft-billboard" keyword.
   // Leaderboard flight (863187590) requires "ft-leaderboard" keyword.
-  const requestKeywords =
+  // Caller-supplied keywords (e.g. purchase signal from order confirmation) are merged in.
+  const baseKeywords: string[] =
     size === "billboard" ? ["ft-billboard"] :
     size === "leaderboard" ? ["ft-leaderboard"] :
     placementId === "home-hero-billboard" ? ["ft-billboard"] :
     placementId === "home-mid-leaderboard" ? ["ft-leaderboard"] :
-    undefined;
+    [];
+
+  // Merge caller keywords (purchase signal, category tags, etc.) with format keywords
+  const requestKeywords =
+    baseKeywords.length > 0 || (callerKeywords && callerKeywords.length > 0)
+      ? [...baseKeywords, ...(callerKeywords ?? [])]
+      : undefined;
 
   const decision = await fetchAdDecision({
     placements: [

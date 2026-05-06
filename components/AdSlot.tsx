@@ -89,6 +89,12 @@ interface AdSlotProps {
   siteId?: number;
   adTypes?: number[];
   className?: string;
+  /**
+   * Additional targeting keywords passed to Kevel Decision API.
+   * Use for contextual/purchase-signal targeting (e.g. order categories, SKUs).
+   * These are merged with format-routing keywords (ft-billboard, ft-leaderboard).
+   */
+  keywords?: string[];
   /** Show debug borders and placement label (dev/demo mode) */
   debug?: boolean;
 }
@@ -105,6 +111,7 @@ export default function AdSlot({
   placementId,
   siteId,
   adTypes,
+  keywords,
   className = "",
   debug = false,
 }: AdSlotProps) {
@@ -135,6 +142,7 @@ export default function AdSlot({
             siteId,
             adTypes,
             size,
+            ...(keywords && keywords.length > 0 ? { keywords } : {}),
           }),
         });
 
@@ -164,7 +172,7 @@ export default function AdSlot({
 
     loadAd();
     return () => { cancelled = true; };
-  }, [placementId, siteId, adTypes]);
+  }, [placementId, siteId, adTypes, keywords]);
 
   // Fire impression pixel once ad is visible
   useEffect(() => {

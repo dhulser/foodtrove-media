@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { getFeaturedProducts, formatPrice } from "@/lib/catalog";
 import AdSlot from "@/components/AdSlot";
@@ -61,6 +61,20 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
     }
     setLoading(false);
   }, [orderId]);
+
+  /**
+   * Purchase signal keywords for Kevel targeting.
+   * Derived from the order's item categories and SKUs once order data loads.
+   * Passed to post-purchase AdSlots so Kevel can serve complementary sponsored products.
+   * Format: [...department slugs, ...sku strings]
+   * Example: ["produce", "dairy", "sku-apples-organic-3lb", "sku-milk-whole-1gal"]
+   */
+  const purchaseKeywords = useMemo<string[]>(() => {
+    if (!order?.items?.length) return [];
+    const categories = [...new Set(order.items.map((item) => item.departmentSlug).filter(Boolean))];
+    const skus = order.items.map((item) => `sku-${item.id}`);
+    return [...categories, ...skus];
+  }, [order]);
 
   if (loading) {
     return (
@@ -230,7 +244,11 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
         <div>
           <p className="text-xs text-stone-400 font-medium uppercase tracking-wider mb-3">Sponsored</p>
           <div className="flex justify-center">
-            <AdSlot size="billboard" placementId="post-purchase-billboard" />
+            <AdSlot
+              size="billboard"
+              placementId="post-purchase-billboard"
+              keywords={purchaseKeywords}
+            />
           </div>
         </div>
 
@@ -258,7 +276,11 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
 
         {/* Post-purchase leaderboard */}
         <div className="flex justify-center">
-          <AdSlot size="leaderboard" placementId="post-purchase-leaderboard" />
+          <AdSlot
+            size="leaderboard"
+            placementId="post-purchase-leaderboard"
+            keywords={purchaseKeywords}
+          />
         </div>
 
         {/* CTA strip */}

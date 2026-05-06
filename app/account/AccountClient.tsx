@@ -270,11 +270,6 @@ export default function AccountClient() {
               </div>
             </div>
 
-            {/* Bottom leaderboard */}
-            <div className="flex justify-center pt-4">
-              <AdSlot size="leaderboard" placementId="account-bottom-leaderboard" />
-            </div>
-
           </div>
         </div>
       </div>
