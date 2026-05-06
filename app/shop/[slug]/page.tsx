@@ -81,11 +81,12 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
         <div className="flex gap-8">
           {/* Main product grid */}
           <div className="flex-1 min-w-0">
-            {/* Leaderboard slot above product grid */}
+            {/* Leaderboard slot above product grid — pass department slug for contextual targeting */}
             <div className="mb-6 flex justify-center">
               <AdSlot
                 size="leaderboard"
                 placementId={`dept-${dept.id}-top-leaderboard`}
+                keywords={[dept.slug]}
               />
             </div>
 
@@ -121,6 +122,7 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
                       <AdSlot
                         size="leaderboard"
                         placementId={`dept-${dept.id}-inline-${Math.floor(index / 10)}`}
+                        keywords={[dept.slug]}
                       />
                     </div>
                   )}
@@ -136,10 +138,12 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
               <AdSlot
                 size="medium-rectangle"
                 placementId={`dept-${dept.id}-right-rail-mrec`}
+                keywords={[dept.slug]}
               />
               <AdSlot
                 size="medium-rectangle"
                 placementId={`dept-${dept.id}-right-rail-mrec-2`}
+                keywords={[dept.slug]}
               />
             </div>
           </div>

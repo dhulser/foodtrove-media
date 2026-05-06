@@ -133,22 +133,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           </div>
 
-          {/* Right rail ad */}
+          {/* Right rail ad — contextual keywords: department + product tags */}
           <div className="hidden xl:block w-[300px] shrink-0">
             <div className="sticky top-[120px]">
               <AdSlot
                 size="medium-rectangle"
                 placementId={`product-${product.id}-right-rail`}
+                keywords={[department.slug, ...product.tags]}
               />
             </div>
           </div>
         </div>
 
-        {/* Mid-page leaderboard */}
+        {/* Mid-page leaderboard — contextual keywords: department + product tags */}
         <div className="my-10 flex justify-center">
           <AdSlot
             size="leaderboard"
             placementId={`product-${product.id}-mid-leaderboard`}
+            keywords={[department.slug, ...product.tags]}
           />
         </div>
 

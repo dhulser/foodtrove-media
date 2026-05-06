@@ -36,8 +36,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Live ad placements — formats with mapped Kevel flights and creatives.
-  // billboard + leaderboard: FreshFarm Organics flights, verified filling ✓
-  // medium-rectangle: FreshFarm Organics flight 863188334 created, pending propagation
+  // FreshFarm Organics + NutriPeak Nutrition campaigns active on all three formats.
+  // billboard (970x250): flights 863187467 (FreshFarm) + 863188608 (NutriPeak) ✓
+  // leaderboard (728x90): flights 863187590 (FreshFarm) + 863188610 (NutriPeak) ✓
+  // medium-rectangle (300x250): flights 863188334 (FreshFarm) + 863188611 (NutriPeak) ✓
   // Other formats fall back gracefully — prevents wrong-sized creative rendering.
   const isLivePlacement =
     ["home-hero-billboard", "home-mid-leaderboard"].includes(placementId) ||
