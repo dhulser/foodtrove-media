@@ -150,15 +150,13 @@ export default function CartDrawer({ open, onClose }: CartDrawerProps) {
               <span className="text-lg font-bold text-stone-900">{formatPrice(subtotal)}</span>
             </div>
             <p className="text-xs text-stone-400">Delivery and taxes calculated at checkout.</p>
-            <button
-              className="w-full py-3.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm"
-              onClick={() => {
-                // Checkout stub — no real checkout in MVP
-                alert("Checkout coming soon! This is a demo storefront.");
-              }}
+            <Link
+              href="/checkout"
+              onClick={onClose}
+              className="w-full py-3.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 text-center"
             >
               Proceed to Checkout · {formatPrice(subtotal)}
-            </button>
+            </Link>
             <button
               onClick={onClose}
               className="w-full py-2.5 text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors"
