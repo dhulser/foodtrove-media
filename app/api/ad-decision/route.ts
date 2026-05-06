@@ -35,17 +35,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ filled: false, reason: "no-credentials" });
   }
 
-  // Only billboard placements have a mapped creative right now.
-  // Leaderboard and other formats fall back gracefully — prevents wrong-sized creative rendering.
-  const LIVE_PLACEMENT_IDS = ["home-hero-billboard"];
-  const isLivePlacement = LIVE_PLACEMENT_IDS.includes(placementId) || size === "billboard";
+  // Both billboard and leaderboard have mapped creatives and Kevel flights.
+  // Other formats fall back gracefully — prevents wrong-sized creative rendering.
+  const LIVE_PLACEMENT_IDS = ["home-hero-billboard", "home-mid-leaderboard"];
+  const isLivePlacement = LIVE_PLACEMENT_IDS.includes(placementId) || size === "billboard" || size === "leaderboard";
   if (!isLivePlacement) {
     return NextResponse.json({ filled: false, reason: "no-creative-mapped" });
   }
 
-  // Keywords route ad requests to the correct flight by format.
-  // Billboard flight requires "ft-billboard" keyword — set when adding keyword targeting.
-  const requestKeywords = size === "billboard" ? ["ft-billboard"] : undefined;
+  // Keywords route ad requests to the correct Kevel flight by format.
+  // Billboard flight (863187467) requires "ft-billboard" keyword.
+  // Leaderboard flight (863187590) requires "ft-leaderboard" keyword.
+  const requestKeywords =
+    size === "billboard" ? ["ft-billboard"] :
+    size === "leaderboard" ? ["ft-leaderboard"] :
+    placementId === "home-hero-billboard" ? ["ft-billboard"] :
+    placementId === "home-mid-leaderboard" ? ["ft-leaderboard"] :
+    undefined;
 
   const decision = await fetchAdDecision({
     placements: [

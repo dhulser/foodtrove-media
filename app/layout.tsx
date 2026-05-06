@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { CartProvider } from "@/lib/cart";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -29,9 +30,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-stone-50 font-sans text-stone-900">
-        <Nav />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <CartProvider>
+          <Nav />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

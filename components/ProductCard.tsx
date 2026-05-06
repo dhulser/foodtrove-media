@@ -68,8 +68,7 @@ export default function ProductCard({ product, department, showSponsoredBadge = 
           <div>
             <span className="text-lg font-bold text-stone-900">{formatPrice(product.price)}</span>
           </div>
-          {/* Browse-only MVP — Add button is visual only, handled client-side */}
-          <AddToCartButton />
+          <AddToCartButton product={product} department={department} />
         </div>
       </div>
     </Link>
