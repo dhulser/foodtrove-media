@@ -35,10 +35,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ filled: false, reason: "no-credentials" });
   }
 
-  // Both billboard and leaderboard have mapped creatives and Kevel flights.
+  // Live ad placements — formats with mapped Kevel flights and creatives.
+  // billboard + leaderboard: FreshFarm Organics flights, verified filling ✓
+  // medium-rectangle: FreshFarm Organics flight 863188334 created, pending propagation
   // Other formats fall back gracefully — prevents wrong-sized creative rendering.
-  const LIVE_PLACEMENT_IDS = ["home-hero-billboard", "home-mid-leaderboard"];
-  const isLivePlacement = LIVE_PLACEMENT_IDS.includes(placementId) || size === "billboard" || size === "leaderboard";
+  const isLivePlacement =
+    ["home-hero-billboard", "home-mid-leaderboard"].includes(placementId) ||
+    size === "billboard" ||
+    size === "leaderboard" ||
+    size === "medium-rectangle";
   if (!isLivePlacement) {
     return NextResponse.json({ filled: false, reason: "no-creative-mapped" });
   }
@@ -46,10 +51,12 @@ export async function POST(request: NextRequest) {
   // Keywords route ad requests to the correct Kevel flight by format.
   // Billboard flight (863187467) requires "ft-billboard" keyword.
   // Leaderboard flight (863187590) requires "ft-leaderboard" keyword.
+  // MRec flight (863188334) requires "ft-mrec" keyword.
   // Caller-supplied keywords (e.g. purchase signal from order confirmation) are merged in.
   const baseKeywords: string[] =
     size === "billboard" ? ["ft-billboard"] :
     size === "leaderboard" ? ["ft-leaderboard"] :
+    size === "medium-rectangle" ? ["ft-mrec"] :
     placementId === "home-hero-billboard" ? ["ft-billboard"] :
     placementId === "home-mid-leaderboard" ? ["ft-leaderboard"] :
     [];
