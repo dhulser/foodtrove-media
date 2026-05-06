@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-// Static campaign data — mirrors Kevel Management API entities
-// In a production setup, this would be fetched from /api/admin/campaigns
-// which would call the Kevel Management API server-side
+// Campaign data — sourced from /api/admin/campaigns (live Kevel Management API)
+// Falls back to static snapshot if the API is unavailable (Vercel env vars not set).
+// Static data is the canonical source of advertiser/flight IDs for FoodTrove network 12024.
 
 interface AdEntry {
   adId: number;
@@ -191,6 +191,46 @@ export default function CampaignDashboardClient() {
   const [expandedFlights, setExpandedFlights] = useState<Set<number>>(new Set());
   const [decisionResults, setDecisionResults] = useState<Record<string, string>>({});
   const [testingSlot, setTestingSlot] = useState<string | null>(null);
+  const [liveStatus, setLiveStatus] = useState<Record<string, { isActive?: boolean; impressions?: number }>>({});
+  const [liveDataState, setLiveDataState] = useState<"loading" | "live" | "unavailable">("loading");
+  const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+
+  // Fetch live campaign data from the Kevel Management API proxy
+  const fetchLiveData = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/campaigns");
+      if (!res.ok) {
+        setLiveDataState("unavailable");
+        return;
+      }
+      const data = await res.json();
+      if (data.error) {
+        setLiveDataState("unavailable");
+        return;
+      }
+      // Build a flight-id → live status map
+      const statusMap: Record<string, { isActive?: boolean; impressions?: number }> = {};
+      for (const adv of data.advertisers ?? []) {
+        for (const camp of adv.campaigns ?? []) {
+          for (const flight of camp.flights ?? []) {
+            statusMap[flight.id] = { isActive: flight.isActive, impressions: flight.impressions };
+          }
+        }
+      }
+      setLiveStatus(statusMap);
+      setFetchedAt(data.meta?.fetchedAt ?? null);
+      setLiveDataState("live");
+    } catch {
+      setLiveDataState("unavailable");
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveData();
+    // Refresh live data every 60 seconds
+    const interval = setInterval(fetchLiveData, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchLiveData]);
 
   const toggleFlight = (flightId: number) => {
     setExpandedFlights(prev => {
@@ -234,7 +274,29 @@ export default function CampaignDashboardClient() {
 
   return (
     <div className="space-y-8">
-      {/* Summary stats */}
+      {/* Live data status banner */}
+      <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-xs font-medium ${
+        liveDataState === "live"
+          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+          : liveDataState === "loading"
+          ? "bg-stone-50 text-stone-500 border border-stone-200"
+          : "bg-amber-50 text-amber-700 border border-amber-200"
+      }`}>
+        <div className="flex items-center gap-2">
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            liveDataState === "live" ? "bg-emerald-500" :
+            liveDataState === "loading" ? "bg-stone-400 animate-pulse" : "bg-amber-500"
+          }`} />
+          {liveDataState === "live" && "Live data from Kevel Management API (refreshes every 60s)"}
+          {liveDataState === "loading" && "Connecting to Kevel Management API…"}
+          {liveDataState === "unavailable" && "Showing static snapshot — Kevel API unavailable (check KEVEL_API_KEY in Vercel env vars)"}
+        </div>
+        {fetchedAt && (
+          <span className="font-mono text-[10px] text-emerald-600">
+            {new Date(fetchedAt).toLocaleTimeString()}
+          </span>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Advertisers", value: totalAdvertisers, icon: "🏢" },
@@ -349,7 +411,10 @@ export default function CampaignDashboardClient() {
                   <div className="divide-y divide-stone-50">
                     {campaign.flights.map((flight) => {
                       const fmtColors = FORMAT_COLORS[flight.format as keyof typeof FORMAT_COLORS];
-                      const isExpanded = expandedFlights.has(flight.id);
+                            const isExpanded = expandedFlights.has(flight.id);
+                            // Overlay live status if available; fall back to static
+                            const liveFlightData = liveStatus[flight.id];
+                            const effectiveActive = liveFlightData?.isActive ?? flight.isActive;
                       return (
                         <div key={flight.id}>
                           <button
@@ -383,7 +448,7 @@ export default function CampaignDashboardClient() {
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
                                 {[
                                   { label: "Flight ID", value: flight.id, mono: true },
-                                  { label: "Status", value: flight.isActive ? "Active" : "Paused", mono: false },
+                                  { label: "Status", value: effectiveActive ? "Active" : "Paused", mono: false },
                                   { label: "Impressions Cap", value: flight.isUnlimited ? "Unlimited" : flight.impressions.toLocaleString(), mono: false },
                                   { label: "Keywords", value: flight.keyword, mono: true },
                                 ].map(({ label, value, mono }) => (
