@@ -25,7 +25,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AdSlotSize } from "@/lib/types";
-import { kevelCredentialsAvailable } from "@/lib/kevel";
+
+// Client-safe credential check — uses NEXT_PUBLIC_ env vars (never the API key)
+function kevelEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_KEVEL_ENABLED === "true";
+}
 
 const SIZE_MAP: Record<AdSlotSize, { width: number; height: number; label: string }> = {
   leaderboard: { width: 728, height: 90, label: "Leaderboard (728×90)" },
@@ -113,7 +117,7 @@ export default function AdSlot({
 
     async function loadAd() {
       // Check if credentials are available without importing server-side env directly
-      const hasCredentials = kevelCredentialsAvailable();
+      const hasCredentials = kevelEnabled();
       if (!hasCredentials) {
         if (!cancelled) setAdState({ status: "no-credentials" });
         return;

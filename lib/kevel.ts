@@ -102,7 +102,9 @@ export async function fetchAdDecision(
     return null;
   }
 
-  const url = `https://e-${KEVEL_NETWORK_ID}.adzerk.net/api/v2/decision`;
+  // Kevel Decision API: POST to /api/v2 (no /decision suffix)
+  // Docs: https://dev.kevel.com/docs/decision-api
+  const url = `https://e-${KEVEL_NETWORK_ID}.adzerk.net/api/v2`;
 
   try {
     const response = await fetch(url, {

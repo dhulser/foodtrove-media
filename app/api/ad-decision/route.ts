@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   const networkId = process.env.KEVEL_NETWORK_ID ? parseInt(process.env.KEVEL_NETWORK_ID, 10) : null;
+  const siteIdEnv = process.env.KEVEL_SITE_ID ? parseInt(process.env.KEVEL_SITE_ID, 10) : null;
 
   if (!networkId || !process.env.KEVEL_API_KEY) {
     return NextResponse.json({ filled: false, reason: "no-credentials" });
@@ -39,7 +40,8 @@ export async function POST(request: NextRequest) {
       {
         divName: placementId,
         networkId,
-        siteId: siteId ?? 0,
+        // Prefer caller-supplied siteId, then env default, then 0 (no targeting)
+        siteId: siteId ?? siteIdEnv ?? 0,
         adTypes: adTypes ?? [5], // 5 = standard display
         count: 1,
       },
