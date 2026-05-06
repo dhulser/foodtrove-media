@@ -66,6 +66,62 @@ export function renderStars(rating: number): string {
   return "★".repeat(full) + (half ? "½" : "") + "☆".repeat(empty);
 }
 
+/**
+ * Returns products with simulated "deal" pricing for the /deals page.
+ * Since the static catalog doesn't have sale prices, we compute a
+ * synthetic discount deterministically from the product ID so the
+ * display is stable across renders.
+ */
+export interface DealProduct {
+  product: Product;
+  department: Department;
+  /** Percentage off, e.g. 20 = 20% off */
+  discountPct: number;
+  /** Original price before discount */
+  originalPrice: number;
+  /** Sale price (rounded to 2 dp) */
+  salePrice: number;
+  /** Deal label shown on card */
+  badgeLabel: string;
+}
+
+const DEAL_DISCOUNT_TIERS = [15, 20, 25, 30];
+const BADGE_LABELS = ["Today Only", "Weekly Deal", "Limited Time", "Members' Pick", "Flash Sale"];
+
+/** Deterministic "hash" of a string → small integer */
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+export function getDealsProducts(count = 16): DealProduct[] {
+  const all: DealProduct[] = [];
+  for (const department of catalog.departments) {
+    // Take top 2 products per department by rating
+    const sorted = [...department.products].sort((a, b) => b.rating - a.rating);
+    for (const product of sorted.slice(0, 2)) {
+      const h = hashStr(product.id);
+      const discountPct = DEAL_DISCOUNT_TIERS[h % DEAL_DISCOUNT_TIERS.length];
+      const originalPrice = parseFloat((product.price * (100 / (100 - discountPct))).toFixed(2));
+      const badgeLabel = BADGE_LABELS[h % BADGE_LABELS.length];
+      all.push({
+        product,
+        department,
+        discountPct,
+        originalPrice,
+        salePrice: product.price,
+        badgeLabel,
+      });
+    }
+  }
+  // Sort by discount descending, then rating
+  all.sort((a, b) => b.discountPct - a.discountPct || b.product.rating - a.product.rating);
+  return all.slice(0, count);
+}
+
 export interface SearchResult {
   product: Product;
   department: Department;
