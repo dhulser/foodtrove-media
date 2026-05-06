@@ -134,6 +134,7 @@ export default function AdSlot({
             placementId,
             siteId,
             adTypes,
+            size,
           }),
         });
 

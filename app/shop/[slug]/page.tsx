@@ -86,7 +86,6 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
               <AdSlot
                 size="leaderboard"
                 placementId={`dept-${dept.id}-top-leaderboard`}
-                debug={true}
               />
             </div>
 
@@ -122,7 +121,6 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
                       <AdSlot
                         size="leaderboard"
                         placementId={`dept-${dept.id}-inline-${Math.floor(index / 10)}`}
-                        debug={true}
                       />
                     </div>
                   )}
@@ -138,12 +136,10 @@ export default async function DepartmentPage({ params }: DepartmentPageProps) {
               <AdSlot
                 size="medium-rectangle"
                 placementId={`dept-${dept.id}-right-rail-mrec`}
-                debug={true}
               />
               <AdSlot
                 size="medium-rectangle"
                 placementId={`dept-${dept.id}-right-rail-mrec-2`}
-                debug={true}
               />
             </div>
           </div>

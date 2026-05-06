@@ -12,7 +12,7 @@ export default function HomePage() {
       {/* Hero billboard ad slot */}
       <div className="w-full bg-white border-b border-stone-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
-          <AdSlot size="billboard" placementId="home-hero-billboard" debug={true} />
+          <AdSlot size="billboard" placementId="home-hero-billboard" />
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export default function HomePage() {
 
       {/* Leaderboard ad slot */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center mb-8">
-        <AdSlot size="leaderboard" placementId="home-mid-leaderboard" debug={true} />
+        <AdSlot size="leaderboard" placementId="home-mid-leaderboard" />
       </div>
 
       {/* Featured / Sponsored products */}
@@ -96,7 +96,7 @@ export default function HomePage() {
               key={product.id}
               product={product}
               department={department}
-              showSponsoredBadge={true}
+              showSponsoredBadge={false}
             />
           ))}
         </div>

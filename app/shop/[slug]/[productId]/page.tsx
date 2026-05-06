@@ -139,7 +139,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <AdSlot
                 size="medium-rectangle"
                 placementId={`product-${product.id}-right-rail`}
-                debug={true}
               />
             </div>
           </div>
@@ -150,7 +149,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <AdSlot
             size="leaderboard"
             placementId={`product-${product.id}-mid-leaderboard`}
-            debug={true}
           />
         </div>
 
