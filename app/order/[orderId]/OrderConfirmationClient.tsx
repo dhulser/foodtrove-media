@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, getFeaturedProducts } from "@/lib/catalog";
 import AdSlot from "@/components/AdSlot";
 import ProductCard from "@/components/ProductCard";
 import type { Product, Department } from "@/lib/types";
