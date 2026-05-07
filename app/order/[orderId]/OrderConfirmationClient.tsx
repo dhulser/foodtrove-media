@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { getFeaturedProducts, formatPrice } from "@/lib/catalog";
+import { formatPrice } from "@/lib/catalog";
 import AdSlot from "@/components/AdSlot";
-import ProductCard from "@/components/ProductCard";
 
 interface OrderItem {
   id: string;
@@ -39,8 +38,27 @@ const DELIVERY_LABELS = {
   scheduled: { label: "Scheduled Delivery", eta: "Your chosen time slot", icon: "📅" },
 };
 
-// These would be Kevel-decisioned in production — post-purchase sponsored products
-const crossSellProducts = getFeaturedProducts(6);
+// Sponsored product from /api/sponsored-products
+interface SponsoredProduct {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  unit: string;
+  rating: number;
+  reviewCount: number;
+  departmentSlug: string;
+  departmentName: string;
+  departmentIcon: string;
+  inStock: boolean;
+}
+
+interface SponsoredProductsResponse {
+  source: "kevel" | "fallback";
+  sponsoredBy: string | null;
+  advertiserId: number | null;
+  products: SponsoredProduct[];
+}
 
 interface OrderConfirmationClientProps {
   orderId: string;
@@ -49,6 +67,7 @@ interface OrderConfirmationClientProps {
 export default function OrderConfirmationClient({ orderId }: OrderConfirmationClientProps) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [crossSell, setCrossSell] = useState<SponsoredProductsResponse | null>(null);
 
   useEffect(() => {
     try {
@@ -66,15 +85,26 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
    * Purchase signal keywords for Kevel targeting.
    * Derived from the order's item categories and SKUs once order data loads.
    * Passed to post-purchase AdSlots so Kevel can serve complementary sponsored products.
-   * Format: [...department slugs, ...sku strings]
-   * Example: ["produce", "dairy", "sku-apples-organic-3lb", "sku-milk-whole-1gal"]
+   * Format: [...department slugs, ...sku-{id} strings]
    */
   const purchaseKeywords = useMemo<string[]>(() => {
     if (!order?.items?.length) return [];
-    const categories = [...new Set(order.items.map((item) => item.departmentSlug).filter(Boolean))];
+    const categories = Array.from(new Set(order.items.map((item) => item.departmentSlug).filter(Boolean)));
     const skus = order.items.map((item) => `sku-${item.id}`);
     return [...categories, ...skus];
   }, [order]);
+
+  // Fetch Kevel-decisioned sponsored products once we have purchase keywords
+  useEffect(() => {
+    if (!purchaseKeywords.length) return;
+    const keywordsParam = purchaseKeywords.join(",");
+    fetch(`/api/sponsored-products?keywords=${encodeURIComponent(keywordsParam)}&count=6`)
+      .then((r) => r.json())
+      .then((data: SponsoredProductsResponse) => setCrossSell(data))
+      .catch(() => {
+        // Non-fatal — cross-sell section stays hidden
+      });
+  }, [purchaseKeywords]);
 
   if (loading) {
     return (
@@ -240,7 +270,7 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
           </div>
         )}
 
-        {/* Post-purchase billboard ad — prime real estate */}
+        {/* Post-purchase billboard — prime real estate */}
         <div>
           <p className="text-xs text-stone-400 font-medium uppercase tracking-wider mb-3">Sponsored</p>
           <div className="flex justify-center">
@@ -252,27 +282,41 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
           </div>
         </div>
 
-        {/* "Stock up on these too" — cross-sell recommendations */}
-        {/* In production: these would be Kevel-decisioned sponsored product recommendations */}
-        {/* based on order contents — sponsored products that complement what was just bought */}
-        <div>
-          <div className="flex items-baseline justify-between mb-4">
-            <h2 className="text-xl font-bold text-stone-900">Stock up on these too</h2>
-            <span className="text-xs text-stone-400 bg-white border border-stone-100 px-2 py-1 rounded-full">
-              Sponsored
-            </span>
+        {/* Kevel-decisioned cross-sell — "Stock up on these too" */}
+        {crossSell && crossSell.products.length > 0 && (
+          <div>
+            <div className="flex items-baseline justify-between mb-4">
+              <h2 className="text-xl font-bold text-stone-900">Stock up on these too</h2>
+              <div className="flex items-center gap-2">
+                {crossSell.source === "kevel" && crossSell.sponsoredBy && (
+                  <span className="text-xs text-stone-400">
+                    Sponsored by <strong className="text-stone-600">{crossSell.sponsoredBy}</strong>
+                  </span>
+                )}
+                <span className="text-xs text-stone-400 bg-white border border-stone-100 px-2 py-1 rounded-full">
+                  Sponsored
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {crossSell.products.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/shop/${product.departmentSlug}/${product.id}`}
+                  className="bg-white rounded-xl border border-stone-100 shadow-sm p-3 hover:shadow-md hover:border-emerald-200 transition-all group"
+                >
+                  <div className="aspect-square rounded-lg bg-stone-50 flex items-center justify-center text-3xl mb-2 group-hover:bg-emerald-50 transition-colors">
+                    {product.departmentIcon}
+                  </div>
+                  <p className="text-xs font-semibold text-stone-800 leading-tight line-clamp-2 mb-1">{product.name}</p>
+                  <p className="text-xs text-stone-400">{product.brand}</p>
+                  <p className="text-sm font-bold text-emerald-700 mt-1">{formatPrice(product.price)}</p>
+                  <p className="text-[10px] text-stone-400">{product.unit}</p>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {crossSellProducts.map(({ product, department }) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                department={department}
-                showSponsoredBadge={true}
-              />
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Post-purchase leaderboard */}
         <div className="flex justify-center">
@@ -305,7 +349,7 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
                 href="/deals"
                 className="px-5 py-2.5 border border-stone-200 text-stone-700 text-sm font-semibold rounded-xl hover:bg-stone-50 transition-colors whitespace-nowrap"
               >
-                Today's Deals
+                Today&apos;s Deals
               </Link>
             </div>
           </div>
