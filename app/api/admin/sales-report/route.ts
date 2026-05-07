@@ -1,258 +1,239 @@
 /**
- * /api/admin/sales-report — Revenue reporting for Sales dashboard
+ * /api/admin/sales-report — Sales reporting data endpoint
  *
- * Pulls live flight data from the Kevel Management API and calculates:
- * - Estimated revenue per advertiser per format (CPM × impressions / 1000)
- * - Blended effective CPM across the network
- * - Impression budget utilisation per flight
- * - Competitive auction summary (which advertisers are competing on each keyword)
+ * Aggregates campaign data from Kevel Management API into a Sales-friendly
+ * format. Returns CPM rates, flight status, advertiser roster, and
+ * estimated inventory value for Tyler's pipeline conversations.
  *
- * All CPM rates are live from Kevel (Price field on flights).
- * Impression counts are budget figures (IsUnlimited = no cap). In a real
- * network these would come from a reporting API. We project revenue based on
- * an estimated daily fill rate (configurable).
- *
- * Cached 60s — revenue figures don't need sub-minute freshness.
+ * Auth: none for demo (production would require session auth)
+ * Cache: 5-minute TTL
  */
 import { NextResponse } from "next/server";
 
-const KEVEL_API_KEY = process.env.KEVEL_API_KEY;
+interface KevelFlight {
+  Id: number;
+  Name: string;
+  CampaignId: number;
+  Price: number;
+  RateType: number;
+  IsActive: boolean;
+  IsUnlimited: boolean;
+  Impressions: number;
+  Keywords: string;
+  StartDateISO: string;
+}
 
-// --- FoodTrove network config ---
-const ADVERTISERS: Record<
-  number,
-  { name: string; campaignIds: number[] }
-> = {
-  6254651: { name: "FreshFarm Organics", campaignIds: [659158534] },
-  6256255: { name: "NutriPeak Nutrition", campaignIds: [659159072] },
-  6256266: { name: "GreenLeaf Farms",    campaignIds: [659159177] },
-};
+interface KevelCampaign {
+  Id: number;
+  Name: string;
+  AdvertiserId: number;
+  IsActive: boolean;
+}
 
-const CAMPAIGNS: Record<
-  number,
-  { advertiserId: number; flightIds: number[] }
-> = {
-  659158534: { advertiserId: 6254651, flightIds: [863187467, 863187590, 863188334] },
-  659159072: { advertiserId: 6256255, flightIds: [863188608, 863188610, 863188611] },
-  659159177: { advertiserId: 6256266, flightIds: [863188756, 863188757] },
-};
+interface KevelAdvertiser {
+  Id: number;
+  Title: string;
+  IsActive: boolean;
+}
 
-// Map keyword → format name for readable labels
 const FORMAT_LABELS: Record<string, string> = {
-  "ft-billboard":   "Billboard (970×250)",
-  "ft-leaderboard": "Leaderboard (728×90)",
-  "ft-mrec":        "Medium Rectangle (300×250)",
+  "ft-billboard": "Billboard 970×250",
+  "ft-leaderboard": "Leaderboard 728×90",
+  "ft-mrec": "MRec 300×250",
 };
 
-// Estimated daily impressions per format (conservative — demo environment)
-// In production these come from a reporting API
-const ESTIMATED_DAILY_IMPRESSIONS: Record<string, number> = {
-  "ft-billboard":   2400,  // ~100/hr × 24h
-  "ft-leaderboard": 4800,  // ~200/hr × 24h
-  "ft-mrec":        3600,  // ~150/hr × 24h
-};
-
-async function kevelGet(path: string) {
-  if (!KEVEL_API_KEY) throw new Error("KEVEL_API_KEY not set");
-  const res = await fetch(`https://api.kevel.co/v1/${path}`, {
-    headers: {
-      "X-Adzerk-ApiKey": KEVEL_API_KEY,
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(`Kevel ${res.status} on GET /v1/${path}`);
+function extractFormat(keywords: string): string {
+  if (!keywords) return "Unknown";
+  const kws = keywords.split(",").map((k) => k.trim());
+  for (const kw of kws) {
+    if (FORMAT_LABELS[kw]) return FORMAT_LABELS[kw];
   }
-  return res.json();
+  return "Custom";
 }
 
-export interface FlightReport {
-  flightId: number;
-  flightName: string;
-  keyword: string;
-  format: string;
-  isActive: boolean;
-  cpm: number;                   // $ per 1000 impressions
-  estimatedDailyImpressions: number;
-  estimatedDailyRevenue: number; // CPM × daily impressions / 1000
-  estimatedMonthlyRevenue: number;
+function isContextual(keywords: string): boolean {
+  if (!keywords) return false;
+  const kws = keywords.split(",").map((k) => k.trim());
+  const formatKeys = new Set(Object.keys(FORMAT_LABELS));
+  return kws.some((kw) => !formatKeys.has(kw));
 }
 
-export interface AdvertiserReport {
-  advertiserId: number;
-  advertiserName: string;
-  flights: FlightReport[];
-  totalDailyRevenue: number;
-  totalMonthlyRevenue: number;
-  activeFormats: string[];
-}
+// Simulate monthly impression estimates based on slot type
+const MONTHLY_IMPRESSION_ESTIMATES: Record<string, number> = {
+  "ft-billboard": 120000,
+  "ft-leaderboard": 200000,
+  "ft-mrec": 350000,
+};
 
-export interface NetworkSummary {
-  totalDailyRevenue: number;
-  totalMonthlyRevenue: number;
-  blendedCPM: number;
-  totalActiveFlights: number;
-  auctionCompetition: AuctionSlot[];
-  fetchedAt: string;
-}
-
-export interface AuctionSlot {
-  format: string;
-  keyword: string;
-  competitors: Array<{
-    advertiserName: string;
-    cpm: number;
-    isWinning: boolean;
-  }>;
-  winningCPM: number;
-  runnerUpCPM: number | null;
-}
-
-export interface SalesReportResponse {
-  advertisers: AdvertiserReport[];
-  network: NetworkSummary;
+async function kevelGet(path: string, apiKey: string) {
+  const url = `https://api.kevel.co/v1/${path}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resp = await (fetch as any)(url, {
+    headers: { "X-Adzerk-ApiKey": apiKey },
+    next: { revalidate: 300 }, // 5-minute cache — Next.js fetch extension
+  });
+  if (!resp.ok) throw new Error(`Kevel API ${path}: ${resp.status}`);
+  return resp.json();
 }
 
 export async function GET() {
-  if (!KEVEL_API_KEY) {
-    return NextResponse.json(
-      { error: "Missing KEVEL_API_KEY — sales report unavailable" },
-      { status: 503 }
-    );
+  const apiKey = process.env.KEVEL_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ error: "no-credentials" }, { status: 503 });
   }
 
   try {
-    // Fetch all flights in parallel across all campaigns
-    const allFlightIds = Object.values(CAMPAIGNS).flatMap((c) => c.flightIds);
-    const flightDataMap: Record<number, ReturnType<typeof Object.create>> = {};
+    // Known advertiser IDs from FoodTrove network 12024
+    const advertiserIds = [6254651, 6256255, 6256266];
+    const campaignIds = [659158534, 659159072, 659159177];
 
-    await Promise.all(
-      allFlightIds.map(async (flightId) => {
-        try {
-          const data = await kevelGet(`flight/${flightId}`);
-          flightDataMap[flightId] = data;
-        } catch {
-          flightDataMap[flightId] = null;
+    // Fetch all data in parallel
+    const [advertisers, ...campaigns] = await Promise.all([
+      Promise.all(advertiserIds.map((id) => kevelGet(`advertiser/${id}`, apiKey).catch(() => null))),
+      ...campaignIds.map((id) => kevelGet(`campaign/${id}`, apiKey).catch(() => null)),
+    ]);
+
+    // Build advertiser map
+    const advertiserMap: Record<number, KevelAdvertiser> = {};
+    for (const adv of advertisers as (KevelAdvertiser | null)[]) {
+      if (adv) advertiserMap[adv.Id] = adv;
+    }
+
+    // Known flight IDs per campaign
+    const flightIdsByCampaign: Record<number, number[]> = {
+      659158534: [863187467, 863187590, 863188334],  // FreshFarm
+      659159072: [863188608, 863188610, 863188611],  // NutriPeak
+      659159177: [863188756, 863188757],             // GreenLeaf
+    };
+
+    // Fetch all flights in parallel
+    const allFlightIds = Object.values(flightIdsByCampaign).flat();
+    const flights = await Promise.all(
+      allFlightIds.map((id) => kevelGet(`flight/${id}`, apiKey).catch(() => null))
+    );
+    const flightMap: Record<number, KevelFlight> = {};
+    for (const f of flights as (KevelFlight | null)[]) {
+      if (f) flightMap[f.Id] = f;
+    }
+
+    // Build sales report data
+    const advertisers_report = advertiserIds.map((advId) => {
+      const adv = advertiserMap[advId];
+      if (!adv) return null;
+
+      // Find campaigns for this advertiser
+      const advCampaigns = (campaigns as (KevelCampaign | null)[]).filter(
+        (c): c is KevelCampaign => c !== null && c.AdvertiserId === advId
+      );
+
+      const advFlights: KevelFlight[] = [];
+      for (const camp of advCampaigns) {
+        const campFlightIds = flightIdsByCampaign[camp.Id] ?? [];
+        for (const fid of campFlightIds) {
+          const f = flightMap[fid];
+          if (f) advFlights.push(f);
         }
-      })
-    );
-
-    // Build advertiser reports
-    const advertiserReports: AdvertiserReport[] = Object.entries(ADVERTISERS).map(
-      ([advIdStr, advInfo]) => {
-        const advId = parseInt(advIdStr, 10);
-        const flightIds = advInfo.campaignIds.flatMap(
-          (cid) => CAMPAIGNS[cid]?.flightIds ?? []
-        );
-
-        const flights: FlightReport[] = flightIds
-          .map((flightId): FlightReport | null => {
-            const fd = flightDataMap[flightId];
-            if (!fd) return null;
-
-            const keyword = (fd.Keywords ?? "").split(",")[0].trim();
-            const format = FORMAT_LABELS[keyword] ?? keyword ?? "Unknown format";
-            const cpm: number = fd.Price ?? 0;
-            const dailyImpressions = ESTIMATED_DAILY_IMPRESSIONS[keyword] ?? 1000;
-            const dailyRevenue = (cpm / 1000) * dailyImpressions;
-
-            return {
-              flightId: fd.Id,
-              flightName: fd.Name,
-              keyword,
-              format,
-              isActive: fd.IsActive ?? false,
-              cpm,
-              estimatedDailyImpressions: dailyImpressions,
-              estimatedDailyRevenue: parseFloat(dailyRevenue.toFixed(2)),
-              estimatedMonthlyRevenue: parseFloat((dailyRevenue * 30).toFixed(2)),
-            };
-          })
-          .filter((f): f is FlightReport => f !== null && f.isActive);
-
-        const totalDaily = flights.reduce((sum, f) => sum + f.estimatedDailyRevenue, 0);
-        const totalMonthly = flights.reduce((sum, f) => sum + f.estimatedMonthlyRevenue, 0);
-
-        return {
-          advertiserId: advId,
-          advertiserName: advInfo.name,
-          flights,
-          totalDailyRevenue: parseFloat(totalDaily.toFixed(2)),
-          totalMonthlyRevenue: parseFloat(totalMonthly.toFixed(2)),
-          activeFormats: Array.from(new Set(flights.map((f) => f.format))),
-        };
       }
-    );
 
-    // Network summary
-    const totalDailyRevenue = advertiserReports.reduce(
-      (sum, a) => sum + a.totalDailyRevenue,
-      0
-    );
-    const totalMonthlyRevenue = advertiserReports.reduce(
-      (sum, a) => sum + a.totalMonthlyRevenue,
-      0
-    );
+      const activeFlights = advFlights.filter((f) => f.IsActive);
+      const formats = activeFlights.map((f) => ({
+        name: f.Name,
+        format: extractFormat(f.Keywords),
+        keywords: f.Keywords,
+        cpm: f.Price,
+        isContextual: isContextual(f.Keywords),
+        isActive: f.IsActive,
+        flightId: f.Id,
+        monthlyEstImpressions: (() => {
+          const kws = f.Keywords?.split(",").map((k) => k.trim()) ?? [];
+          const formatKey = kws.find((k) => MONTHLY_IMPRESSION_ESTIMATES[k]);
+          return formatKey ? MONTHLY_IMPRESSION_ESTIMATES[formatKey] : 50000;
+        })(),
+      }));
 
-    // Weighted blended CPM (impressions × CPM / total impressions)
-    const allFlights = advertiserReports.flatMap((a) => a.flights);
-    const totalImpressions = allFlights.reduce(
-      (sum, f) => sum + f.estimatedDailyImpressions,
-      0
-    );
-    const weightedCPM =
-      totalImpressions > 0
-        ? allFlights.reduce(
-            (sum, f) => sum + f.cpm * f.estimatedDailyImpressions,
-            0
-          ) / totalImpressions
-        : 0;
-
-    // Auction competition by format
-    const formatKeywords = ["ft-billboard", "ft-leaderboard", "ft-mrec"];
-    const auctionCompetition: AuctionSlot[] = formatKeywords.map((kw) => {
-      const competingFlights = allFlights
-        .filter((f) => f.keyword === kw)
-        .sort((a, b) => b.cpm - a.cpm);
-
-      const competitors = competingFlights.map((f, i) => {
-        const adv = advertiserReports.find((a) =>
-          a.flights.some((af) => af.flightId === f.flightId)
-        );
-        return {
-          advertiserName: adv?.advertiserName ?? "Unknown",
-          cpm: f.cpm,
-          isWinning: i === 0,
-        };
-      });
+      const totalMonthlyRevenue = formats.reduce((sum, f) => {
+        return sum + (f.cpm / 1000) * f.monthlyEstImpressions;
+      }, 0);
 
       return {
-        format: FORMAT_LABELS[kw] ?? kw,
-        keyword: kw,
-        competitors,
-        winningCPM: competingFlights[0]?.cpm ?? 0,
-        runnerUpCPM: competingFlights[1]?.cpm ?? null,
+        id: advId,
+        name: adv.Title,
+        isActive: adv.IsActive,
+        campaigns: advCampaigns.length,
+        activeFlights: activeFlights.length,
+        formats,
+        avgCpm: formats.length > 0
+          ? formats.reduce((s, f) => s + f.cpm, 0) / formats.length
+          : 0,
+        estimatedMonthlyRevenue: totalMonthlyRevenue,
       };
-    });
+    }).filter(Boolean);
+
+    // Aggregate metrics
+    const totalActiveFlights = advertisers_report.reduce(
+      (s, a) => s + (a?.activeFlights ?? 0), 0
+    );
+    const totalEstMonthlyRevenue = advertisers_report.reduce(
+      (s, a) => s + (a?.estimatedMonthlyRevenue ?? 0), 0
+    );
+    const avgNetworkCpm = advertisers_report.length > 0
+      ? advertisers_report.reduce((s, a) => s + (a?.avgCpm ?? 0), 0) / advertisers_report.length
+      : 0;
+
+    // Placement inventory summary
+    const inventory = [
+      {
+        placement: "Homepage Billboard",
+        size: "970×250",
+        location: "Above fold, homepage",
+        estimatedMonthlyImpressions: MONTHLY_IMPRESSION_ESTIMATES["ft-billboard"],
+        currentCpm: Math.max(...advertisers_report.map(a =>
+          a?.formats.find(f => f.keywords?.includes("ft-billboard"))?.cpm ?? 0
+        )),
+        advertisers: advertisers_report.filter(a =>
+          a?.formats.some(f => f.keywords?.includes("ft-billboard"))
+        ).map(a => a?.name),
+      },
+      {
+        placement: "Leaderboard",
+        size: "728×90",
+        location: "Department pages, homepage, search",
+        estimatedMonthlyImpressions: MONTHLY_IMPRESSION_ESTIMATES["ft-leaderboard"],
+        currentCpm: Math.max(...advertisers_report.map(a =>
+          a?.formats.find(f => f.keywords?.includes("ft-leaderboard"))?.cpm ?? 0
+        )),
+        advertisers: advertisers_report.filter(a =>
+          a?.formats.some(f => f.keywords?.includes("ft-leaderboard"))
+        ).map(a => a?.name),
+      },
+      {
+        placement: "Medium Rectangle",
+        size: "300×250",
+        location: "Product pages, dept right rail, cart",
+        estimatedMonthlyImpressions: MONTHLY_IMPRESSION_ESTIMATES["ft-mrec"],
+        currentCpm: Math.max(...advertisers_report.map(a =>
+          a?.formats.find(f => f.keywords?.includes("ft-mrec"))?.cpm ?? 0
+        )),
+        advertisers: advertisers_report.filter(a =>
+          a?.formats.some(f => f.keywords?.includes("ft-mrec"))
+        ).map(a => a?.name),
+      },
+    ];
 
     return NextResponse.json({
-      advertisers: advertiserReports,
-      network: {
-        totalDailyRevenue: parseFloat(totalDailyRevenue.toFixed(2)),
-        totalMonthlyRevenue: parseFloat(totalMonthlyRevenue.toFixed(2)),
-        blendedCPM: parseFloat(weightedCPM.toFixed(2)),
-        totalActiveFlights: allFlights.length,
-        auctionCompetition,
-        fetchedAt: new Date().toISOString(),
+      generatedAt: new Date().toISOString(),
+      network: "FoodTrove Media — Kevel Network 12024",
+      summary: {
+        totalAdvertisers: advertisers_report.length,
+        totalActiveFlights,
+        estimatedMonthlyRevenue: totalEstMonthlyRevenue,
+        avgNetworkCpm,
       },
-    } satisfies SalesReportResponse);
+      advertisers: advertisers_report,
+      inventory,
+    });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[SalesReport] Kevel fetch failed:", msg);
-    return NextResponse.json(
-      { error: `Sales report unavailable: ${msg}` },
-      { status: 502 }
-    );
+    console.error("[sales-report] Error:", err);
+    return NextResponse.json({ error: "internal-error" }, { status: 500 });
   }
 }

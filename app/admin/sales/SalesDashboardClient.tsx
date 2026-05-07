@@ -2,305 +2,329 @@
 
 import { useEffect, useState } from "react";
 
-// Types matching /api/admin/sales-report response
-interface FlightReport {
-  flightId: number;
-  flightName: string;
-  keyword: string;
+interface FormatEntry {
+  name: string;
   format: string;
-  isActive: boolean;
+  keywords: string;
   cpm: number;
-  estimatedDailyImpressions: number;
-  estimatedDailyRevenue: number;
-  estimatedMonthlyRevenue: number;
+  isContextual: boolean;
+  isActive: boolean;
+  flightId: number;
+  monthlyEstImpressions: number;
 }
 
 interface AdvertiserReport {
-  advertiserId: number;
-  advertiserName: string;
-  flights: FlightReport[];
-  totalDailyRevenue: number;
-  totalMonthlyRevenue: number;
-  activeFormats: string[];
+  id: number;
+  name: string;
+  isActive: boolean;
+  campaigns: number;
+  activeFlights: number;
+  formats: FormatEntry[];
+  avgCpm: number;
+  estimatedMonthlyRevenue: number;
 }
 
-interface AuctionCompetitor {
-  advertiserName: string;
-  cpm: number;
-  isWinning: boolean;
-}
-
-interface AuctionSlot {
-  format: string;
-  keyword: string;
-  competitors: AuctionCompetitor[];
-  winningCPM: number;
-  runnerUpCPM: number | null;
-}
-
-interface NetworkSummary {
-  totalDailyRevenue: number;
-  totalMonthlyRevenue: number;
-  blendedCPM: number;
-  totalActiveFlights: number;
-  auctionCompetition: AuctionSlot[];
-  fetchedAt: string;
+interface InventoryEntry {
+  placement: string;
+  size: string;
+  location: string;
+  estimatedMonthlyImpressions: number;
+  currentCpm: number;
+  advertisers: (string | undefined)[];
 }
 
 interface SalesReport {
+  generatedAt: string;
+  network: string;
+  summary: {
+    totalAdvertisers: number;
+    totalActiveFlights: number;
+    estimatedMonthlyRevenue: number;
+    avgNetworkCpm: number;
+  };
   advertisers: AdvertiserReport[];
-  network: NetworkSummary;
+  inventory: InventoryEntry[];
 }
 
-function fmt$(n: number) {
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function fmt(n: number, digits = 2): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(n);
 }
 
-function fmtK(n: number) {
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : n.toLocaleString();
+function fmtNum(n: number): string {
+  return new Intl.NumberFormat("en-US").format(n);
 }
 
-// Advertiser accent colors
-const ADVERTISER_COLORS: Record<string, string> = {
-  "FreshFarm Organics": "emerald",
-  "NutriPeak Nutrition": "violet",
-  "GreenLeaf Farms":    "teal",
+const BRAND_COLORS: Record<string, string> = {
+  "FreshFarm Organics": "bg-emerald-100 text-emerald-800 border-emerald-200",
+  "NutriPeak Nutrition": "bg-blue-100 text-blue-800 border-blue-200",
+  "GreenLeaf Farms": "bg-lime-100 text-lime-800 border-lime-200",
 };
 
-function accentClasses(name: string, variant: "bg" | "text" | "border") {
-  const color = ADVERTISER_COLORS[name] ?? "stone";
-  const map: Record<string, Record<string, string>> = {
-    "FreshFarm Organics": { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-    "NutriPeak Nutrition": { bg: "bg-violet-50",  text: "text-violet-700",  border: "border-violet-200"  },
-    "GreenLeaf Farms":    { bg: "bg-teal-50",    text: "text-teal-700",    border: "border-teal-200"    },
-  };
-  return map[name]?.[variant] ?? `bg-stone-50 text-stone-700 border-stone-200`.split(" ").find(c => c.startsWith(variant)) ?? "";
-}
-
-function AdvertiserCard({ adv }: { adv: AdvertiserReport }) {
-  const bgCls    = accentClasses(adv.advertiserName, "bg");
-  const textCls  = accentClasses(adv.advertiserName, "text");
-  const borderCls = accentClasses(adv.advertiserName, "border");
-
-  return (
-    <div className={`rounded-2xl border ${borderCls} ${bgCls} p-6 space-y-5`}>
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className={`text-base font-bold ${textCls}`}>{adv.advertiserName}</h3>
-          <p className="text-xs text-stone-500 mt-0.5">
-            {adv.activeFormats.length} active format{adv.activeFormats.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-extrabold text-stone-900">{fmt$(adv.totalMonthlyRevenue)}</p>
-          <p className="text-xs text-stone-400">est. monthly</p>
-        </div>
-      </div>
-
-      {/* Flight breakdown table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs text-stone-400 uppercase tracking-wider border-b border-stone-200">
-              <th className="pb-2 font-medium">Format</th>
-              <th className="pb-2 font-medium text-right">CPM</th>
-              <th className="pb-2 font-medium text-right">Daily est. imps</th>
-              <th className="pb-2 font-medium text-right">Daily rev.</th>
-              <th className="pb-2 font-medium text-right">Monthly rev.</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100">
-            {adv.flights.map((f) => (
-              <tr key={f.flightId} className="text-stone-700">
-                <td className="py-2.5 pr-4">
-                  <div className="font-medium text-stone-800 truncate max-w-[160px]">{f.format}</div>
-                  <div className="text-xs text-stone-400 font-mono">{f.keyword}</div>
-                </td>
-                <td className="py-2.5 text-right font-semibold">{fmt$(f.cpm)}</td>
-                <td className="py-2.5 text-right text-stone-500">{fmtK(f.estimatedDailyImpressions)}</td>
-                <td className="py-2.5 text-right">{fmt$(f.estimatedDailyRevenue)}</td>
-                <td className="py-2.5 text-right font-semibold">{fmt$(f.estimatedMonthlyRevenue)}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr className="border-t border-stone-200">
-              <td className="pt-2.5 text-xs font-semibold text-stone-500 uppercase tracking-wide" colSpan={3}>Total</td>
-              <td className="pt-2.5 text-right font-bold text-stone-900">{fmt$(adv.totalDailyRevenue)}</td>
-              <td className="pt-2.5 text-right font-bold text-stone-900">{fmt$(adv.totalMonthlyRevenue)}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function AuctionCard({ slot }: { slot: AuctionSlot }) {
-  const premium =
-    slot.runnerUpCPM !== null
-      ? (((slot.winningCPM - slot.runnerUpCPM) / slot.runnerUpCPM) * 100).toFixed(0)
-      : null;
-
-  return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="text-sm font-bold text-stone-900">{slot.format}</p>
-          <p className="text-xs font-mono text-stone-400">{slot.keyword}</p>
-        </div>
-        <div className="text-right">
-          <p className="text-lg font-extrabold text-emerald-700">{fmt$(slot.winningCPM)}</p>
-          <p className="text-xs text-stone-400">winning CPM</p>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        {slot.competitors.map((c, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className={`flex-1 flex items-center gap-2.5 py-1.5 px-3 rounded-lg ${c.isWinning ? "bg-emerald-50 border border-emerald-200" : "bg-stone-50"}`}>
-              {c.isWinning ? (
-                <span className="text-emerald-600 text-xs font-bold">★</span>
-              ) : (
-                <span className="w-3 h-3 rounded-full bg-stone-300 shrink-0" />
-              )}
-              <span className={`text-sm font-medium ${c.isWinning ? "text-emerald-800" : "text-stone-600"}`}>
-                {c.advertiserName}
-              </span>
-              <span className={`ml-auto text-sm font-bold ${c.isWinning ? "text-emerald-700" : "text-stone-500"}`}>
-                {fmt$(c.cpm)}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {premium !== null && (
-        <p className="text-xs text-stone-400 mt-3">
-          Winner pays {premium}% premium over runner-up
-        </p>
-      )}
-    </div>
-  );
-}
-
-export default function SalesDashboardClient() {
+export default function SalesDashboard() {
   const [report, setReport] = useState<SalesReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   const fetchReport = async () => {
     try {
-      const res = await fetch("/api/admin/sales-report");
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? `HTTP ${res.status}`);
-      }
-      setReport(await res.json());
+      setLoading(true);
+      const resp = await fetch("/api/admin/sales-report");
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = (await resp.json()) as SalesReport;
+      setReport(data);
       setLastRefresh(new Date());
       setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReport();
-    const interval = setInterval(fetchReport, 300_000); // refresh every 5 min
+    void fetchReport();
+    const interval = setInterval(() => void fetchReport(), 300_000); // 5-min refresh
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
+  if (loading && !report) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <div className="animate-pulse text-stone-400 text-sm">Loading sales data…</div>
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-sm text-stone-500">Fetching live campaign data…</p>
+        </div>
       </div>
     );
   }
 
-  if (error || !report) {
+  if (error && !report) {
     return (
-      <div className="max-w-lg mx-auto mt-16 bg-red-50 border border-red-100 rounded-2xl p-8 text-center">
-        <p className="text-sm font-semibold text-red-700 mb-2">Sales report unavailable</p>
-        <p className="text-xs text-red-500 font-mono">{error ?? "No data returned"}</p>
-        <p className="text-xs text-stone-400 mt-4">
-          Ensure <code className="font-mono">KEVEL_API_KEY</code> is set and the Kevel Management API is reachable.
-        </p>
-        <button
-          onClick={fetchReport}
-          className="mt-4 px-4 py-2 text-sm font-semibold text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  const { network, advertisers } = report;
-
-  return (
-    <div className="space-y-8">
-
-      {/* KPI bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: "Est. Monthly Revenue",  value: fmt$(network.totalMonthlyRevenue), sub: `${fmt$(network.totalDailyRevenue)}/day` },
-          { label: "Blended CPM",           value: fmt$(network.blendedCPM),           sub: "across all formats" },
-          { label: "Active Advertisers",    value: String(advertisers.length),          sub: `${network.totalActiveFlights} active flights` },
-          { label: "Auction Slots",         value: String(network.auctionCompetition.length), sub: "competed formats" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mb-1">{kpi.label}</p>
-            <p className="text-2xl font-extrabold text-stone-900">{kpi.value}</p>
-            <p className="text-xs text-stone-400 mt-0.5">{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Advertiser breakdown */}
-      <div>
-        <h2 className="text-base font-bold text-stone-900 mb-4">Advertiser Revenue Breakdown</h2>
-        <div className="space-y-4">
-          {advertisers.map((adv) => (
-            <AdvertiserCard key={adv.advertiserId} adv={adv} />
-          ))}
-        </div>
-      </div>
-
-      {/* Auction competition */}
-      <div>
-        <h2 className="text-base font-bold text-stone-900 mb-4">Live Auction Competition</h2>
-        <p className="text-xs text-stone-400 mb-4">
-          First-price CPM auction — winner determined by highest Price on active flights.
-          Kevel resolves ties by priority.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {network.auctionCompetition.map((slot) => (
-            <AuctionCard key={slot.keyword} slot={slot} />
-          ))}
-        </div>
-      </div>
-
-      {/* Footer note */}
-      <div className="text-xs text-stone-400 pt-2 border-t border-stone-100 flex items-center justify-between">
-        <span>
-          Revenue figures are estimates based on conservative daily impression projections.
-          CPM rates are live from the Kevel Management API.
-        </span>
-        <div className="flex items-center gap-3 shrink-0 ml-4">
-          {lastRefresh && (
-            <span>Last updated {lastRefresh.toLocaleTimeString()}</span>
-          )}
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 max-w-md text-center">
+          <p className="text-sm font-semibold text-red-700 mb-1">Failed to load report</p>
+          <p className="text-xs text-red-500">{error}</p>
           <button
-            onClick={fetchReport}
-            className="px-3 py-1.5 text-xs font-semibold text-stone-600 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors"
+            onClick={() => void fetchReport()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white text-sm rounded-lg"
           >
-            Refresh
+            Retry
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (!report) return null;
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      {/* Header */}
+      <div className="bg-white border-b border-stone-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-extrabold text-stone-900">Sales Report</h1>
+              <p className="text-sm text-stone-500 mt-0.5">{report.network}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-stone-400">
+                Last updated {lastRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              <button
+                onClick={() => void fetchReport()}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-2 border border-stone-200 rounded-lg text-sm text-stone-600 hover:bg-stone-50 disabled:opacity-50 transition"
+              >
+                <svg className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        {/* Summary KPIs */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            {
+              label: "Active Advertisers",
+              value: String(report.summary.totalAdvertisers),
+              sub: "Live campaigns",
+              color: "text-emerald-600",
+            },
+            {
+              label: "Active Flights",
+              value: String(report.summary.totalActiveFlights),
+              sub: "Across all formats",
+              color: "text-blue-600",
+            },
+            {
+              label: "Avg Network CPM",
+              value: fmt(report.summary.avgNetworkCpm, 2),
+              sub: "Blended rate",
+              color: "text-amber-600",
+            },
+            {
+              label: "Est. Monthly Revenue",
+              value: fmt(report.summary.estimatedMonthlyRevenue, 0),
+              sub: "Run-rate estimate",
+              color: "text-emerald-700",
+            },
+          ].map((kpi) => (
+            <div key={kpi.label} className="bg-white rounded-xl border border-stone-100 shadow-sm p-4">
+              <p className="text-xs text-stone-400 font-medium uppercase tracking-wide">{kpi.label}</p>
+              <p className={`text-2xl font-extrabold mt-1 ${kpi.color}`}>{kpi.value}</p>
+              <p className="text-xs text-stone-400 mt-0.5">{kpi.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Advertiser roster */}
+        <div>
+          <h2 className="text-base font-bold text-stone-800 mb-3">Advertiser Roster</h2>
+          <div className="space-y-4">
+            {report.advertisers.map((adv) => (
+              <div key={adv.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3 border-b border-stone-50">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full border ${
+                          BRAND_COLORS[adv.name] ?? "bg-stone-100 text-stone-600 border-stone-200"
+                        }`}
+                      >
+                        {adv.name}
+                      </span>
+                      <span className={`text-xs font-medium ${adv.isActive ? "text-emerald-600" : "text-stone-400"}`}>
+                        {adv.isActive ? "● Active" : "○ Paused"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-400 mt-1">
+                      Advertiser ID {adv.id} · {adv.campaigns} campaign{adv.campaigns !== 1 ? "s" : ""} · {adv.activeFlights} active flight{adv.activeFlights !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div className="flex gap-6 text-right">
+                    <div>
+                      <p className="text-xs text-stone-400">Avg CPM</p>
+                      <p className="text-sm font-bold text-stone-800">{fmt(adv.avgCpm)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-stone-400">Est. Mo. Rev</p>
+                      <p className="text-sm font-bold text-emerald-600">{fmt(adv.estimatedMonthlyRevenue, 0)}</p>
+                    </div>
+                  </div>
+                </div>
+                {/* Flights table */}
+                <div className="divide-y divide-stone-50">
+                  {adv.formats.map((f) => (
+                    <div key={f.flightId} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-stone-700 truncate">{f.format}</p>
+                        <p className="text-xs text-stone-400 truncate">{f.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-stone-500 shrink-0">
+                        {f.isContextual && (
+                          <span className="bg-purple-50 text-purple-700 border border-purple-100 px-1.5 py-0.5 rounded-full font-medium">
+                            Contextual
+                          </span>
+                        )}
+                        <span>{fmtNum(f.monthlyEstImpressions)} est. imp./mo</span>
+                        <span className="font-semibold text-stone-700">{fmt(f.cpm)} CPM</span>
+                        <span className="font-medium text-emerald-600">
+                          {fmt((f.cpm / 1000) * f.monthlyEstImpressions, 0)}/mo
+                        </span>
+                        <span className={f.isActive ? "text-emerald-500" : "text-stone-300"}>
+                          {f.isActive ? "●" : "○"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Inventory breakdown */}
+        <div>
+          <h2 className="text-base font-bold text-stone-800 mb-3">Ad Inventory</h2>
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-100 bg-stone-50">
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Placement</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide hidden sm:table-cell">Size</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Est. Mo. Impr.</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Floor CPM</th>
+                  <th className="text-right px-5 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wide">Sold To</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-50">
+                {report.inventory.map((inv) => (
+                  <tr key={inv.placement} className="hover:bg-stone-50/50 transition">
+                    <td className="px-5 py-3.5">
+                      <p className="font-semibold text-stone-800">{inv.placement}</p>
+                      <p className="text-xs text-stone-400">{inv.location}</p>
+                    </td>
+                    <td className="px-5 py-3.5 text-stone-500 hidden sm:table-cell font-mono text-xs">{inv.size}</td>
+                    <td className="px-5 py-3.5 text-right text-stone-600 font-medium">{fmtNum(inv.estimatedMonthlyImpressions)}</td>
+                    <td className="px-5 py-3.5 text-right font-semibold text-amber-600">{fmt(inv.currentCpm)}</td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {inv.advertisers.filter(Boolean).map((name) => (
+                          <span
+                            key={name}
+                            className={`text-xs px-1.5 py-0.5 rounded-full border font-medium ${
+                              BRAND_COLORS[name ?? ""] ?? "bg-stone-100 text-stone-600 border-stone-200"
+                            }`}
+                          >
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-stone-50 border-t border-stone-200">
+                  <td colSpan={2} className="px-5 py-3 text-xs font-bold text-stone-700 uppercase tracking-wide">Totals</td>
+                  <td className="px-5 py-3 text-right font-bold text-stone-700">
+                    {fmtNum(report.inventory.reduce((s, i) => s + i.estimatedMonthlyImpressions, 0))}
+                  </td>
+                  <td className="px-5 py-3 text-right font-bold text-amber-600">
+                    {fmt(report.inventory.reduce((s, i) => s + i.currentCpm, 0) / report.inventory.length)}
+                    <span className="font-normal text-stone-400 ml-1">avg</span>
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <div className="bg-amber-50 border border-amber-100 rounded-xl px-5 py-4">
+          <p className="text-xs font-semibold text-amber-700 mb-1">Sales pipeline note</p>
+          <p className="text-xs text-amber-600">
+            Revenue estimates use impression volume projections × live CPM rates. Monthly impression
+            figures are run-rate estimates based on current traffic mix — not actuals from Kevel
+            impression log (analytics integration pending). CPM rates reflect the current highest bidder
+            per format; additional advertiser competition will increase floor CPMs.
+          </p>
+        </div>
+
       </div>
     </div>
   );

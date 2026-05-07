@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/catalog";
 import AdSlot from "@/components/AdSlot";
+import ProductCard from "@/components/ProductCard";
+import type { Product, Department } from "@/lib/types";
 
 interface OrderItem {
   id: string;
@@ -32,33 +34,28 @@ interface OrderData {
   placedAt: string;
 }
 
+interface SponsoredProductResult {
+  product: Product;
+  department: Department;
+  sponsoredBy: string | null;
+}
+
+interface SponsoredProductsResponse {
+  products: SponsoredProductResult[];
+  source: "kevel" | "static";
+  brandName?: string | null;
+  impressionUrl?: string;
+  clickUrl?: string;
+}
+
 const DELIVERY_LABELS = {
   standard: { label: "Standard Delivery", eta: "Within 2 hours", icon: "🚗" },
   express: { label: "Express Delivery", eta: "Within 45 minutes", icon: "⚡" },
   scheduled: { label: "Scheduled Delivery", eta: "Your chosen time slot", icon: "📅" },
 };
 
-// Sponsored product from /api/sponsored-products
-interface SponsoredProduct {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  unit: string;
-  rating: number;
-  reviewCount: number;
-  departmentSlug: string;
-  departmentName: string;
-  departmentIcon: string;
-  inStock: boolean;
-}
-
-interface SponsoredProductsResponse {
-  source: "kevel" | "fallback";
-  sponsoredBy: string | null;
-  advertiserId: number | null;
-  products: SponsoredProduct[];
-}
+// Static fallback — shown while Kevel data loads or on no-fill
+const staticCrossSell = getFeaturedProducts(6);
 
 interface OrderConfirmationClientProps {
   orderId: string;
@@ -67,7 +64,8 @@ interface OrderConfirmationClientProps {
 export default function OrderConfirmationClient({ orderId }: OrderConfirmationClientProps) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [crossSell, setCrossSell] = useState<SponsoredProductsResponse | null>(null);
+  const [crossSellData, setCrossSellData] = useState<SponsoredProductsResponse | null>(null);
+  const [crossSellLoading, setCrossSellLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -94,17 +92,40 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
     return [...categories, ...skus];
   }, [order]);
 
-  // Fetch Kevel-decisioned sponsored products once we have purchase keywords
-  useEffect(() => {
-    if (!purchaseKeywords.length) return;
-    const keywordsParam = purchaseKeywords.join(",");
-    fetch(`/api/sponsored-products?keywords=${encodeURIComponent(keywordsParam)}&count=6`)
-      .then((r) => r.json())
-      .then((data: SponsoredProductsResponse) => setCrossSell(data))
-      .catch(() => {
-        // Non-fatal — cross-sell section stays hidden
+  /**
+   * Fetch Kevel-decisioned sponsored product recommendations.
+   * Called once we have the purchase keywords from the order.
+   * Falls back to static featured products if Kevel doesn't fill.
+   */
+  const fetchSponsoredProducts = useCallback(async (keywords: string[]) => {
+    setCrossSellLoading(true);
+    try {
+      const resp = await fetch("/api/sponsored-products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purchaseKeywords: keywords, count: 6 }),
       });
-  }, [purchaseKeywords]);
+      if (resp.ok) {
+        const data = (await resp.json()) as SponsoredProductsResponse;
+        setCrossSellData(data);
+        // Fire impression pixel if Kevel filled
+        if (data.source === "kevel" && data.impressionUrl) {
+          void fetch(data.impressionUrl, { method: "GET", mode: "no-cors" });
+        }
+      }
+    } catch {
+      // Non-fatal — static fallback will render
+    } finally {
+      setCrossSellLoading(false);
+    }
+  }, []);
+
+  // Once order loads and we have purchase keywords, fetch decisioned cross-sell
+  useEffect(() => {
+    if (purchaseKeywords.length > 0) {
+      void fetchSponsoredProducts(purchaseKeywords);
+    }
+  }, [purchaseKeywords, fetchSponsoredProducts]);
 
   if (loading) {
     return (
@@ -125,6 +146,15 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
   } else {
     etaDate.setHours(etaDate.getHours() + 2);
   }
+
+  // Determine cross-sell content: Kevel-decisioned or static fallback
+  const crossSellProducts: SponsoredProductResult[] =
+    crossSellData?.products ??
+    staticCrossSell.map(({ product, department }) => ({ product, department, sponsoredBy: null }));
+
+  const sponsorLabel = crossSellData?.source === "kevel" && crossSellData.brandName
+    ? `Sponsored by ${crossSellData.brandName}`
+    : "Sponsored";
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -283,40 +313,38 @@ export default function OrderConfirmationClient({ orderId }: OrderConfirmationCl
         </div>
 
         {/* Kevel-decisioned cross-sell — "Stock up on these too" */}
-        {crossSell && crossSell.products.length > 0 && (
-          <div>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-xl font-bold text-stone-900">Stock up on these too</h2>
-              <div className="flex items-center gap-2">
-                {crossSell.source === "kevel" && crossSell.sponsoredBy && (
-                  <span className="text-xs text-stone-400">
-                    Sponsored by <strong className="text-stone-600">{crossSell.sponsoredBy}</strong>
-                  </span>
-                )}
-                <span className="text-xs text-stone-400 bg-white border border-stone-100 px-2 py-1 rounded-full">
-                  Sponsored
-                </span>
-              </div>
-            </div>
+        <div>
+          <div className="flex items-baseline justify-between mb-4">
+            <h2 className="text-xl font-bold text-stone-900">Stock up on these too</h2>
+            <span className="text-xs text-stone-400 bg-white border border-stone-100 px-2 py-1 rounded-full">
+              {crossSellLoading ? "Loading…" : sponsorLabel}
+            </span>
+          </div>
+          {crossSellLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              {crossSell.products.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/shop/${product.departmentSlug}/${product.id}`}
-                  className="bg-white rounded-xl border border-stone-100 shadow-sm p-3 hover:shadow-md hover:border-emerald-200 transition-all group"
-                >
-                  <div className="aspect-square rounded-lg bg-stone-50 flex items-center justify-center text-3xl mb-2 group-hover:bg-emerald-50 transition-colors">
-                    {product.departmentIcon}
-                  </div>
-                  <p className="text-xs font-semibold text-stone-800 leading-tight line-clamp-2 mb-1">{product.name}</p>
-                  <p className="text-xs text-stone-400">{product.brand}</p>
-                  <p className="text-sm font-bold text-emerald-700 mt-1">{formatPrice(product.price)}</p>
-                  <p className="text-[10px] text-stone-400">{product.unit}</p>
-                </Link>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-stone-100 rounded-xl animate-pulse" />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+              {crossSellProducts.map(({ product, department }) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  department={department}
+                  showSponsoredBadge={true}
+                />
+              ))}
+            </div>
+          )}
+          {/* Source attribution for transparency in demo context */}
+          {crossSellData && (
+            <p className="mt-2 text-xs text-stone-300 text-right">
+              {crossSellData.source === "kevel" ? "Decisioned by Kevel" : "Fallback"}
+            </p>
+          )}
+        </div>
 
         {/* Post-purchase leaderboard */}
         <div className="flex justify-center">
