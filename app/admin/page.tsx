@@ -111,6 +111,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Network Analytics — new */}
+          <Link href="/admin/analytics"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Network Analytics</div>
+                <div className="text-xs text-stone-400">Executive Overview</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Fill rates, CPM competition, placement leaderboard, revenue run-rate, and 7-day
+              delivery trend across all 3 formats. Single pane for network health.
+            </p>
+            <div className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700">
+              Open analytics →
+            </div>
+          </Link>
+
           {/* Flight Pacing — new */}
           <Link href="/admin/pacing"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
