@@ -31,3 +31,31 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* Print styles — hide site chrome when printing from /admin/sales/print */
+@media print {
+  nav,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 15mm 12mm;
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    background: white !important;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+}
