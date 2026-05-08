@@ -122,6 +122,40 @@ export function getDealsProducts(count = 16): DealProduct[] {
   return all.slice(0, count);
 }
 
+/**
+ * Returns catalog products matching a brand profile.
+ * Matches on: explicit product brand names OR category tags overlapping the brand's categoryTags.
+ * Sorted by: sponsored first, then by rating descending.
+ */
+export function getProductsForBrand(
+  productBrands: string[],
+  categoryTags: string[],
+  limit = 12
+): { product: Product; department: Department }[] {
+  const results: { product: Product; department: Department }[] = [];
+  const brandSet = new Set(productBrands.map((b) => b.toLowerCase()));
+  const tagSet = new Set(categoryTags.map((t) => t.toLowerCase()));
+
+  for (const department of catalog.departments) {
+    for (const product of department.products) {
+      const brandMatch = brandSet.has(product.brand.toLowerCase());
+      const tagMatch = product.tags.some((t) => tagSet.has(t.toLowerCase()));
+      if (brandMatch || tagMatch) {
+        results.push({ product, department });
+      }
+    }
+  }
+
+  // Sort: sponsored first, then by rating
+  results.sort((a, b) => {
+    if (a.product.sponsored && !b.product.sponsored) return -1;
+    if (!a.product.sponsored && b.product.sponsored) return 1;
+    return b.product.rating - a.product.rating;
+  });
+
+  return results.slice(0, limit);
+}
+
 export interface SearchResult {
   product: Product;
   department: Department;

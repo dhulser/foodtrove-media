@@ -46,6 +46,15 @@ export default function Nav() {
               <span>Deals</span>
             </Link>
             <span className="w-px h-5 bg-stone-200 mx-1" />
+            {/* Brands link */}
+            <Link
+              href="/brands"
+              className="flex items-center gap-1.5 px-3 h-full text-sm font-semibold text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 whitespace-nowrap transition-colors border-b-2 border-transparent hover:border-emerald-600"
+            >
+              <span className="text-base leading-none">⭐</span>
+              <span>Brands</span>
+            </Link>
+            <span className="w-px h-5 bg-stone-200 mx-1" />
             {departments.map((dept) => (
               <Link
                 key={dept.id}

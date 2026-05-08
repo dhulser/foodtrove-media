@@ -1,8 +1,20 @@
 import Link from "next/link";
 import { formatPrice } from "@/lib/catalog";
+import { BRANDS } from "@/lib/brands";
 import type { Product, Department } from "@/lib/types";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductImage from "@/components/ProductImage";
+
+// Build a lookup: catalog brand name → brand page slug
+// Checks if product brand is in a sponsored brand's productBrands list
+function getBrandPageSlug(productBrand: string): string | null {
+  for (const brand of BRANDS) {
+    if (brand.productBrands.some((b) => b.toLowerCase() === productBrand.toLowerCase())) {
+      return brand.slug;
+    }
+  }
+  return null;
+}
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +25,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, department, showSponsoredBadge = true }: ProductCardProps) {
   const stars = Math.round(product.rating);
+  const brandSlug = getBrandPageSlug(product.brand);
 
   return (
     <Link
@@ -43,8 +56,14 @@ export default function ProductCard({ product, department, showSponsoredBadge = 
 
       {/* Product info */}
       <div className="flex flex-col flex-1 p-4 gap-1.5">
-        <p className="text-xs text-stone-400 font-medium uppercase tracking-wide truncate">
-          {product.brand}
+        <p className="text-xs font-medium uppercase tracking-wide truncate">
+          {brandSlug ? (
+            <span className="text-emerald-600 font-semibold">
+              {product.brand}
+            </span>
+          ) : (
+            <span className="text-stone-400">{product.brand}</span>
+          )}
         </p>
         <h3 className="text-sm font-semibold text-stone-800 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors">
           {product.name}
