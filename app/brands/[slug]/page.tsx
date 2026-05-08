@@ -219,13 +219,19 @@ export default async function BrandPage({ params }: Props) {
         )}
       </div>
 
-      {/* Back to brands */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      {/* Back to brands + advertiser portal link */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 flex items-center gap-6">
         <Link
           href="/brands"
           className="inline-flex items-center gap-2 text-sm font-medium text-stone-500 hover:text-stone-700 transition-colors"
         >
           ← All brand partners
+        </Link>
+        <Link
+          href={`/advertiser/${brand.slug}`}
+          className="inline-flex items-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+        >
+          Campaign Performance Portal →
         </Link>
       </div>
     </div>
