@@ -87,6 +87,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Experiment Registry */}
+          <Link href="/admin/experiments"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-orange-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Experiment Registry</div>
+                <div className="text-xs text-stone-400">A/B Tests · Outcomes</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Active and completed A/B experiments — creative variants, contextual targeting tests,
+              format allocation, and placement position comparisons.
+            </p>
+            <div className="mt-4 text-xs font-medium text-orange-600 group-hover:text-orange-700">
+              Open registry →
+            </div>
+          </Link>
+
           {/* Flight Pacing — new */}
           <Link href="/admin/pacing"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
