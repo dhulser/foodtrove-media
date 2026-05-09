@@ -135,6 +135,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Shopper Journey */}
+          <Link href="/admin/shopper"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-purple-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Shopper Journey</div>
+                <div className="text-xs text-stone-400">Ad Exposure Map · Sales Demo</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Full funnel visualization — every ad touchpoint from homepage to post-purchase,
+              with CPM, placement IDs, and estimated daily impressions. Tyler&rsquo;s pitch deck in a URL.
+            </p>
+            <div className="mt-4 text-xs font-medium text-purple-600 group-hover:text-purple-700">
+              Open journey map →
+            </div>
+          </Link>
+
           {/* Flight Pacing — new */}
           <Link href="/admin/pacing"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">

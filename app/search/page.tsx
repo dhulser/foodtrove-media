@@ -4,6 +4,7 @@ import { searchProducts } from "@/lib/catalog";
 import AdSlot from "@/components/AdSlot";
 import ProductCard from "@/components/ProductCard";
 import SearchBar from "@/components/SearchBar";
+import SponsoredSearchResults from "@/components/SponsoredSearchResults";
 
 interface SearchPageProps {
   searchParams: Promise<{ q?: string }>;
@@ -43,7 +44,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 {results.length > 0
                   ? `${results.length} result${results.length === 1 ? "" : "s"} for `
                   : `No results for `}
-                <span className="text-emerald-700">"{query}"</span>
+                <span className="text-emerald-700">&ldquo;{query}&rdquo;</span>
               </h1>
               {results.length === 0 && (
                 <p className="text-stone-500 mt-1 text-sm">
@@ -63,7 +64,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top ad slot */}
+        {/* Top leaderboard ad */}
         {query && results.length > 0 && (
           <div className="mb-8 flex justify-center">
             <AdSlot size="leaderboard" placementId="search-top-leaderboard" />
@@ -71,21 +72,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         )}
 
         {results.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {results.map(({ product, department }, index) => (
-              <div key={product.id}>
+          <>
+            {/* Sponsored results shelf — Kevel-decisioned, client-side */}
+            <SponsoredSearchResults query={query} />
+
+            {/* Organic results */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {results.map(({ product, department }) => (
                 <ProductCard
+                  key={product.id}
                   product={product}
                   department={department}
                   showSponsoredBadge={product.sponsored}
                 />
-                {/* Mid-page ad unit every 12 products */}
-                {(index + 1) % 12 === 0 && index + 1 < results.length && (
-                  <div className="col-span-full" />
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         ) : query ? (
           /* No results — show department browse fallback */
           <NoResultsFallback query={query} />
@@ -94,7 +96,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SearchPrompt />
         )}
 
-        {/* Bottom ad slot */}
+        {/* Bottom leaderboard ad */}
         {query && results.length > 0 && (
           <div className="mt-12 flex justify-center">
             <AdSlot size="leaderboard" placementId="search-bottom-leaderboard" />
@@ -124,10 +126,10 @@ function NoResultsFallback({ query }: { query: string }) {
       <div className="text-center mb-10">
         <div className="text-5xl mb-4">🔍</div>
         <p className="text-stone-600 font-medium text-lg">
-          No products matched "{query}"
+          No products matched &ldquo;{query}&rdquo;
         </p>
         <p className="text-stone-400 mt-1 text-sm">
-          Try searching for something like "organic milk", "chicken breast", or "chips".
+          Try searching for something like &ldquo;organic milk&rdquo;, &ldquo;chicken breast&rdquo;, or &ldquo;chips&rdquo;.
         </p>
       </div>
 
