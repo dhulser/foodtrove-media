@@ -176,10 +176,34 @@ export default function AdminPage() {
             </div>
             <p className="text-sm text-stone-500 leading-relaxed">
               Real-time pacing health per flight — impression delivery rate vs. goal, days remaining,
-              and spend-to-budget ratio. For Casey's daily pacing checks.
+              and spend-to-budget ratio. For Casey&rsquo;s daily pacing checks.
             </p>
             <div className="mt-4 text-xs font-medium text-violet-600 group-hover:text-violet-700">
               Open pacing →
+            </div>
+          </Link>
+
+          {/* Measurement & Attribution */}
+          <Link href="/admin/measurement"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-teal-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 group-hover:bg-teal-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Measurement</div>
+                <div className="text-xs text-stone-400">Attribution · 3P Verification</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              3P discrepancy tracking, revenue attribution waterfall (click-through / view-through /
+              post-purchase), ROAS by advertiser, and attribution window config.
+            </p>
+            <div className="mt-4 text-xs font-medium text-teal-600 group-hover:text-teal-700">
+              Open measurement →
             </div>
           </Link>
 
