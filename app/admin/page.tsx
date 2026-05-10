@@ -183,6 +183,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Inventory Forecast */}
+          <Link href="/admin/inventory"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Inventory Forecast</div>
+                <div className="text-xs text-stone-400">ATS · Pre-Sales Planning</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Available-to-sell capacity by format, CPM floor guidance, 30-day availability
+              curve, and packaged inventory for RFP responses. Casey and Tyler&rsquo;s pre-sales tool.
+            </p>
+            <div className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700">
+              Open forecast →
+            </div>
+          </Link>
+
           {/* Measurement & Attribution */}
           <Link href="/admin/measurement"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-teal-300 transition-all">
