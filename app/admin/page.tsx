@@ -207,6 +207,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Creative Preview — new */}
+          <Link href="/admin/creatives"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-rose-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 group-hover:bg-rose-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Creative Preview</div>
+                <div className="text-xs text-stone-400">Ad Ops · Casey</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Live HTML creative preview for all 3 advertisers — rendered directly from Kevel.
+              Filter by format, status, or advertiser. Inspect raw ScriptBody HTML inline.
+            </p>
+            <div className="mt-4 text-xs font-medium text-rose-600 group-hover:text-rose-700">
+              Open creative preview →
+            </div>
+          </Link>
+
           {/* Measurement & Attribution */}
           <Link href="/admin/measurement"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-teal-300 transition-all">
