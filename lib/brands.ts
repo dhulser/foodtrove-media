@@ -54,12 +54,12 @@ export const BRANDS: BrandProfile[] = [
     description:
       "FreshFarm Organics has been connecting families with certified organic produce and pantry staples since 2009. Every product is sourced directly from USDA-certified family farms within 200 miles of our distribution centers — meaning what arrives in your cart was in the ground a few days ago. We never use synthetic pesticides, GMOs, or artificial preservatives. Just real food, done right.",
     colorScheme: {
-      bg: "from-emerald-600 to-teal-700",
-      accent: "emerald",
-      text: "text-emerald-700",
-      badge: "bg-emerald-100 text-emerald-800 border-emerald-200",
+      bg: "from-amber-700 to-amber-500",
+      accent: "amber",
+      text: "text-amber-700",
+      badge: "bg-amber-100 text-amber-800 border-amber-200",
     },
-    icon: "🌿",
+    icon: "🌾",
     categoryTags: ["organic", "produce", "fresh", "natural", "farm-fresh"],
     productBrands: [
       "Earthbound Farm",
@@ -114,10 +114,10 @@ export const BRANDS: BrandProfile[] = [
     description:
       "GreenLeaf Farms is a collective of regenerative farmers in the California Central Valley who grow premium produce under strict sustainability standards. Our members practice no-till farming, cover cropping, and integrated pest management — farming methods that rebuild soil health year over year. What you buy from GreenLeaf isn't just food: it's a vote for a farming system that will still work in 50 years.",
     colorScheme: {
-      bg: "from-lime-600 to-green-700",
-      accent: "lime",
-      text: "text-lime-700",
-      badge: "bg-lime-100 text-lime-800 border-lime-200",
+      bg: "from-teal-800 to-teal-500",
+      accent: "teal",
+      text: "text-teal-700",
+      badge: "bg-teal-100 text-teal-800 border-teal-200",
     },
     icon: "🥬",
     categoryTags: ["produce", "greens", "vegetables", "regenerative", "local", "farm-fresh"],

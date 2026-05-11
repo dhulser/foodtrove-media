@@ -26,7 +26,7 @@ const ADVERTISER_NAMES: Record<number, string> = {
 const CREATIVE_IDS: Record<number, number[]> = {
   6254651: [905327348, 905360724, 905392725],  // Billboard, Leaderboard, MRec
   6256255: [905393443, 905393444, 905393445],  // Billboard, Leaderboard, MRec
-  6256266: [905393450, 905393451],             // Leaderboard, MRec (contextual)
+  6256266: [906821651, 906821652, 906821653],  // Billboard, Leaderboard, MRec
 };
 
 // Flight associations per creative (creative → [flightId, ...])
@@ -37,8 +37,9 @@ const CREATIVE_FLIGHTS: Record<number, number[]> = {
   905393443: [863188608],  // NutriPeak Billboard
   905393444: [863188610],  // NutriPeak Leaderboard
   905393445: [863188611],  // NutriPeak MRec
-  905393450: [863188756],  // GreenLeaf Leaderboard
-  905393451: [863188757],  // GreenLeaf MRec
+  906821651: [863188756],  // GreenLeaf Billboard
+  906821652: [863188757],  // GreenLeaf Leaderboard
+  906821653: [863188758],  // GreenLeaf MRec
 };
 
 // Human-readable format labels per creative
@@ -49,8 +50,9 @@ const FORMAT_LABELS: Record<number, { size: string; format: string; dimensions: 
   905393443: { size: "billboard", format: "Billboard", dimensions: "970×250" },
   905393444: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
   905393445: { size: "mrec", format: "MRec", dimensions: "300×250" },
-  905393450: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
-  905393451: { size: "mrec", format: "MRec", dimensions: "300×250" },
+  906821651: { size: "billboard", format: "Billboard", dimensions: "970×250" },
+  906821652: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
+  906821653: { size: "mrec", format: "MRec", dimensions: "300×250" },
 };
 
 // CPM rates per advertiser per format
@@ -101,9 +103,9 @@ export interface AdvertiserCreatives {
 }
 
 const ADVERTISER_COLORS: Record<number, string> = {
-  6254651: "emerald",
+  6254651: "amber",
   6256255: "blue",
-  6256266: "amber",
+  6256266: "teal",
 };
 
 export async function GET() {

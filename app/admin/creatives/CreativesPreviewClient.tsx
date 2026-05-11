@@ -54,6 +54,13 @@ const COLOR_MAP: Record<string, { badge: string; ring: string; dot: string; tab:
     tab: "text-emerald-700 border-emerald-500",
     tabActive: "bg-emerald-600 text-white",
   },
+  amber: {
+    badge: "bg-amber-50 text-amber-700 border-amber-200",
+    ring: "ring-amber-200",
+    dot: "bg-amber-500",
+    tab: "text-amber-700 border-amber-500",
+    tabActive: "bg-amber-600 text-white",
+  },
   blue: {
     badge: "bg-blue-50 text-blue-700 border-blue-200",
     ring: "ring-blue-200",
@@ -61,12 +68,12 @@ const COLOR_MAP: Record<string, { badge: string; ring: string; dot: string; tab:
     tab: "text-blue-700 border-blue-500",
     tabActive: "bg-blue-600 text-white",
   },
-  amber: {
-    badge: "bg-amber-50 text-amber-700 border-amber-200",
-    ring: "ring-amber-200",
-    dot: "bg-amber-500",
-    tab: "text-amber-700 border-amber-500",
-    tabActive: "bg-amber-600 text-white",
+  teal: {
+    badge: "bg-teal-50 text-teal-700 border-teal-200",
+    ring: "ring-teal-200",
+    dot: "bg-teal-500",
+    tab: "text-teal-700 border-teal-500",
+    tabActive: "bg-teal-600 text-white",
   },
 };
 
