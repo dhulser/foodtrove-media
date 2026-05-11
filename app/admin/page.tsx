@@ -231,6 +231,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Auction Log — live bid stream */}
+          <Link href="/admin/auction-log"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-amber-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Auction Log</div>
+                <div className="text-xs text-stone-400">Live Bid Stream</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Real-time record of every ad decision — which advertiser won, at what CPM, who they
+              beat, and whether contextual targeting drove a premium. The auction in action.
+            </p>
+            <div className="mt-4 text-xs font-medium text-amber-600 group-hover:text-amber-700">
+              Open auction log →
+            </div>
+          </Link>
+
           {/* Measurement & Attribution */}
           <Link href="/admin/measurement"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-teal-300 transition-all">
