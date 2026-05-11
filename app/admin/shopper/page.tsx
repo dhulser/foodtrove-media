@@ -45,7 +45,7 @@ const JOURNEY_STEPS = [
         placementId: "home-hero-billboard",
         keyword: "ft-billboard",
         position: "Above fold",
-        topAdvertiser: "NutriPeak Nutrition",
+        topAdvertiser: "Liquid I.V.",
         cpm: "$7.50",
         dailyImpressions: "~2,400",
       },
@@ -56,7 +56,7 @@ const JOURNEY_STEPS = [
         placementId: "home-mid-leaderboard",
         keyword: "ft-leaderboard",
         position: "Between dept grid and featured",
-        topAdvertiser: "NutriPeak Nutrition",
+        topAdvertiser: "Liquid I.V.",
         cpm: "$6.50",
         dailyImpressions: "~2,200",
       },
@@ -76,7 +76,7 @@ const JOURNEY_STEPS = [
         placementId: "search-sponsored-shelf",
         keyword: "ft-mrec + query tokens",
         position: "Above organic results",
-        topAdvertiser: "GreenLeaf Farms (organic queries)",
+        topAdvertiser: "Earthbound Farm (organic queries)",
         cpm: "$6.00",
         dailyImpressions: "~800",
       },
@@ -87,7 +87,7 @@ const JOURNEY_STEPS = [
         placementId: "search-top-leaderboard",
         keyword: "ft-leaderboard",
         position: "Above results",
-        topAdvertiser: "NutriPeak Nutrition",
+        topAdvertiser: "Liquid I.V.",
         cpm: "$6.50",
         dailyImpressions: "~800",
       },
@@ -107,7 +107,7 @@ const JOURNEY_STEPS = [
         placementId: "dept-produce-top-leaderboard",
         keyword: "ft-leaderboard + produce",
         position: "Above product grid",
-        topAdvertiser: "GreenLeaf Farms",
+        topAdvertiser: "Earthbound Farm",
         cpm: "$8.00",
         dailyImpressions: "~1,600",
       },
@@ -118,7 +118,7 @@ const JOURNEY_STEPS = [
         placementId: "dept-produce-right-rail-mrec",
         keyword: "ft-mrec + produce",
         position: "Right rail, sticky",
-        topAdvertiser: "GreenLeaf Farms",
+        topAdvertiser: "Earthbound Farm",
         cpm: "$7.50",
         dailyImpressions: "~1,600",
       },
@@ -169,7 +169,7 @@ const JOURNEY_STEPS = [
         placementId: "cart-sidebar-mrec",
         keyword: "ft-mrec",
         position: "Sidebar (desktop)",
-        topAdvertiser: "NutriPeak Nutrition",
+        topAdvertiser: "Liquid I.V.",
         cpm: "$6.00",
         dailyImpressions: "~700",
       },
@@ -418,8 +418,8 @@ function ShopperJourneyDashboard() {
         {/* Footer note */}
         <div className="mt-8 p-4 bg-stone-100 rounded-xl text-sm text-stone-500">
           <strong className="text-stone-700">About this view:</strong> Impression counts are estimates based on simulated shopper traffic.
-          CPM rates reflect current Kevel flight configurations (FreshFarm $5–5, NutriPeak $6–7.50, GreenLeaf $7.50–8.00).
-          The promoted search format uses query-token keyword targeting — GreenLeaf wins organic/produce queries, NutriPeak wins health/nutrition queries.
+          CPM rates reflect current Kevel flight configurations (Organic Valley $5–5, Liquid I.V. $6–7.50, Earthbound Farm $7.50–8.00).
+          The promoted search format uses query-token keyword targeting — Earthbound Farm wins organic/produce queries, Liquid I.V. wins health/nutrition queries.
           Checkout is intentionally ad-free per platform policy.
         </div>
       </div>

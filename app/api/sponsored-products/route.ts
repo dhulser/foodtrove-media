@@ -6,7 +6,7 @@
  * a list of sponsored products to show the shopper.
  *
  * The sponsorship works like this:
- * - Advertiser brand campaigns (FreshFarm, NutriPeak, GreenLeaf) bid on
+ * - Advertiser brand campaigns (Organic Valley, Liquid I.V., Earthbound Farm) bid on
  *   category keywords (produce, dairy, beverages, etc.)
  * - When a shopper buys from a category, we send those category keywords to Kevel
  * - Kevel returns the winning advertiser brand's creative + metadata
@@ -39,16 +39,16 @@ import type { Product, Department } from "@/lib/types";
 
 // Known advertiser IDs → brand display names
 const ADVERTISER_BRAND_MAP: Record<number, string> = {
-  6254651: "FreshFarm Organics",
-  6256255: "NutriPeak Nutrition",
-  6256266: "GreenLeaf Farms",
+  6256813: "Organic Valley",
+  6256814: "Liquid I.V.",
+  6256815: "Earthbound Farm",
 };
 
 // Advertiser brand → product category keywords (for filtering catalog)
 const ADVERTISER_CATEGORY_MAP: Record<number, string[]> = {
-  6254651: ["produce", "dairy", "bakery", "organic"],   // FreshFarm: fresh grocery
-  6256255: ["snacks", "beverages", "protein", "nutrition"], // NutriPeak: health/nutrition
-  6256266: ["produce", "organic", "fresh"],             // GreenLeaf: organic produce
+  6256813: ["produce", "dairy", "bakery", "organic"],   // Organic Valley: organic dairy/fresh
+  6256814: ["snacks", "beverages", "protein", "nutrition"], // Liquid I.V.: hydration/health
+  6256815: ["produce", "organic", "fresh"],             // Earthbound Farm: organic produce
 };
 
 interface SponsoredProductResult {

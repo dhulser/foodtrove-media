@@ -10,14 +10,14 @@
  * - Each event represents one ad impression decision
  * - Winner: highest CPM eligible advertiser (Kevel first-price auction)
  * - Losers: other eligible advertisers who lost on price/targeting
- * - Contextual events: GreenLeaf wins on produce/organic pages (highest CPM)
+ * - Contextual events: Earthbound Farm wins on produce/organic pages (highest CPM)
  * - Placement taxonomy mirrors actual AdSlot usage in the storefront
  *
  * Realism notes:
  * - Events are generated from a deterministic model seeded by timestamp
  *   (so the same request returns the same recent events — no jitter)
  * - CPMs and advertisers match the actual Kevel flight configuration
- * - Contextual wins (GreenLeaf) only appear on appropriate placements
+ * - Contextual wins (Earthbound Farm) only appear on appropriate placements
  * - Event volume is calibrated to realistic page traffic (200-500 events/hour)
  *
  * Auth: none (demo — production would require session auth)
@@ -34,9 +34,9 @@ interface Advertiser {
 }
 
 const ADVERTISERS: Record<number, Advertiser> = {
-  6254651: { id: 6254651, name: "FreshFarm Organics", slug: "freshfarm", color: "green" },
-  6256255: { id: 6256255, name: "NutriPeak Nutrition", slug: "nutripeak", color: "blue" },
-  6256266: { id: 6256266, name: "GreenLeaf Farms", slug: "greenleaf", color: "emerald" },
+  6256813: { id: 6256813, name: "Organic Valley", slug: "organic-valley", color: "green" },
+  6256814: { id: 6256814, name: "Liquid I.V.", slug: "liquid-iv", color: "blue" },
+  6256815: { id: 6256815, name: "Earthbound Farm", slug: "earthbound-farm", color: "emerald" },
 };
 
 // Ad format definitions
@@ -61,8 +61,8 @@ const FORMATS: FormatConfig[] = [
     label: "Billboard",
     dimensions: "970×250",
     flights: [
-      { flightId: 863187467, advertiserId: 6254651, cpm: 5.0, contextual: false, contextKeywords: [] },
-      { flightId: 863188608, advertiserId: 6256255, cpm: 7.5, contextual: false, contextKeywords: [] },
+      { flightId: 863229974, advertiserId: 6256813, cpm: 5.0, contextual: false, contextKeywords: [] },
+      { flightId: 863229977, advertiserId: 6256814, cpm: 7.5, contextual: false, contextKeywords: [] },
     ],
   },
   {
@@ -70,9 +70,9 @@ const FORMATS: FormatConfig[] = [
     label: "Leaderboard",
     dimensions: "728×90",
     flights: [
-      { flightId: 863187590, advertiserId: 6254651, cpm: 5.0, contextual: false, contextKeywords: [] },
-      { flightId: 863188610, advertiserId: 6256255, cpm: 6.5, contextual: false, contextKeywords: [] },
-      { flightId: 863188756, advertiserId: 6256266, cpm: 8.0, contextual: true, contextKeywords: ["produce", "organic", "fresh"] },
+      { flightId: 863229975, advertiserId: 6256813, cpm: 5.0, contextual: false, contextKeywords: [] },
+      { flightId: 863229978, advertiserId: 6256814, cpm: 6.5, contextual: false, contextKeywords: [] },
+      { flightId: 863229981, advertiserId: 6256815, cpm: 8.0, contextual: true, contextKeywords: ["produce", "organic", "fresh"] },
     ],
   },
   {
@@ -80,9 +80,9 @@ const FORMATS: FormatConfig[] = [
     label: "MRec",
     dimensions: "300×250",
     flights: [
-      { flightId: 863188334, advertiserId: 6254651, cpm: 5.0, contextual: false, contextKeywords: [] },
-      { flightId: 863188611, advertiserId: 6256255, cpm: 6.0, contextual: false, contextKeywords: [] },
-      { flightId: 863188757, advertiserId: 6256266, cpm: 7.5, contextual: true, contextKeywords: ["produce", "organic", "fresh"] },
+      { flightId: 863229976, advertiserId: 6256813, cpm: 5.0, contextual: false, contextKeywords: [] },
+      { flightId: 863229979, advertiserId: 6256814, cpm: 6.0, contextual: false, contextKeywords: [] },
+      { flightId: 863229982, advertiserId: 6256815, cpm: 7.5, contextual: true, contextKeywords: ["produce", "organic", "fresh"] },
     ],
   },
 ];

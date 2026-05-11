@@ -44,35 +44,35 @@ interface FlightConfig {
 
 const ADVERTISERS: AdvertiserConfig[] = [
   {
-    id: 6254651,
-    name: "FreshFarm Organics",
-    slug: "freshfarm-organics",
+    id: 6256813,
+    name: "Organic Valley",
+    slug: "organic-valley",
     color: "#15803d",
     flights: [
-      { id: 863187467, format: "billboard", formatLabel: "Billboard 970×250", keyword: "ft-billboard", cpm: 5.0, contextual: false },
-      { id: 863187590, format: "leaderboard", formatLabel: "Leaderboard 728×90", keyword: "ft-leaderboard", cpm: 5.0, contextual: false },
-      { id: 863188334, format: "mrec", formatLabel: "MRec 300×250", keyword: "ft-mrec", cpm: 5.0, contextual: false },
+      { id: 863229974, format: "billboard", formatLabel: "Billboard 970×250", keyword: "ft-billboard", cpm: 5.0, contextual: false },
+      { id: 863229975, format: "leaderboard", formatLabel: "Leaderboard 728×90", keyword: "ft-leaderboard", cpm: 5.0, contextual: false },
+      { id: 863229976, format: "mrec", formatLabel: "MRec 300×250", keyword: "ft-mrec", cpm: 5.0, contextual: false },
     ],
   },
   {
-    id: 6256255,
-    name: "NutriPeak Nutrition",
-    slug: "nutripeak-nutrition",
+    id: 6256814,
+    name: "Liquid I.V.",
+    slug: "liquid-iv",
     color: "#0369a1",
     flights: [
-      { id: 863188608, format: "billboard", formatLabel: "Billboard 970×250", keyword: "ft-billboard", cpm: 7.5, contextual: false },
-      { id: 863188610, format: "leaderboard", formatLabel: "Leaderboard 728×90", keyword: "ft-leaderboard", cpm: 6.5, contextual: false },
-      { id: 863188611, format: "mrec", formatLabel: "MRec 300×250", keyword: "ft-mrec", cpm: 6.0, contextual: false },
+      { id: 863229977, format: "billboard", formatLabel: "Billboard 970×250", keyword: "ft-billboard", cpm: 7.5, contextual: false },
+      { id: 863229978, format: "leaderboard", formatLabel: "Leaderboard 728×90", keyword: "ft-leaderboard", cpm: 6.5, contextual: false },
+      { id: 863229979, format: "mrec", formatLabel: "MRec 300×250", keyword: "ft-mrec", cpm: 6.0, contextual: false },
     ],
   },
   {
-    id: 6256266,
-    name: "GreenLeaf Farms",
-    slug: "greenleaf-farms",
+    id: 6256815,
+    name: "Earthbound Farm",
+    slug: "earthbound-farm",
     color: "#7c3aed",
     flights: [
-      { id: 863188756, format: "leaderboard", formatLabel: "Leaderboard 728×90 (Produce)", keyword: "ft-leaderboard", cpm: 8.0, contextual: true, contextualLabel: "Produce pages" },
-      { id: 863188757, format: "mrec", formatLabel: "MRec 300×250 (Produce)", keyword: "ft-mrec", cpm: 7.5, contextual: true, contextualLabel: "Produce pages" },
+      { id: 863229981, format: "leaderboard", formatLabel: "Leaderboard 728×90 (Produce)", keyword: "ft-leaderboard", cpm: 8.0, contextual: true, contextualLabel: "Produce pages" },
+      { id: 863229982, format: "mrec", formatLabel: "MRec 300×250 (Produce)", keyword: "ft-mrec", cpm: 7.5, contextual: true, contextualLabel: "Produce pages" },
     ],
   },
 ];
@@ -85,7 +85,7 @@ const FORMAT_MONTHLY_IMPRESSIONS: Record<string, number> = {
   mrec: 420_000,
 };
 
-// GreenLeaf wins produce-targeted leaderboard/mrec — only gets ~35% of those slots
+// Earthbound Farm wins produce-targeted leaderboard/mrec — only gets ~35% of those slots
 const GREENLEAF_CONTEXTUAL_SHARE = 0.35;
 
 // ── Delivery simulation ──────────────────────────────────────────────────────
@@ -108,9 +108,9 @@ function mtdImpressions(monthlyCapacity: number, dayOfMonth: number): number {
 }
 
 // Per-flight impression allocation: auction winner gets all impressions for that slot
-// Billboard: NutriPeak wins (7.50 > 5.00), Leaderboard non-contextual: NutriPeak (6.50 > 5.00)
-// Leaderboard contextual (produce): GreenLeaf (8.00)
-// MRec non-contextual: NutriPeak (6.00 > 5.00), MRec contextual: GreenLeaf (7.50)
+// Billboard: Liquid I.V. wins (7.50 > 5.00), Leaderboard non-contextual: Liquid I.V. (6.50 > 5.00)
+// Leaderboard contextual (produce): Earthbound Farm (8.00)
+// MRec non-contextual: Liquid I.V. (6.00 > 5.00), MRec contextual: Earthbound Farm (7.50)
 function flightImpressions(
   advertiserSlug: string,
   format: "billboard" | "leaderboard" | "mrec",
@@ -120,25 +120,25 @@ function flightImpressions(
   const monthly = FORMAT_MONTHLY_IMPRESSIONS[format] ?? 0;
 
   if (format === "billboard") {
-    // Only NutriPeak wins billboard; FreshFarm gets 0 (loses auction)
-    if (advertiserSlug === "nutripeak-nutrition") return mtdImpressions(monthly, dayOfMonth);
+    // Only Liquid I.V. wins billboard; Organic Valley gets 0 (loses auction)
+    if (advertiserSlug === "liquid-iv") return mtdImpressions(monthly, dayOfMonth);
     return 0;
   }
 
   if (format === "leaderboard") {
     const contextualPool = Math.round(monthly * GREENLEAF_CONTEXTUAL_SHARE);
     const runOfSitePool = monthly - contextualPool;
-    if (advertiserSlug === "greenleaf-farms") return mtdImpressions(contextualPool, dayOfMonth);
-    if (advertiserSlug === "nutripeak-nutrition") return mtdImpressions(runOfSitePool, dayOfMonth);
-    return 0; // FreshFarm loses
+    if (advertiserSlug === "earthbound-farm") return mtdImpressions(contextualPool, dayOfMonth);
+    if (advertiserSlug === "liquid-iv") return mtdImpressions(runOfSitePool, dayOfMonth);
+    return 0; // Organic Valley loses
   }
 
   if (format === "mrec") {
     const contextualPool = Math.round(monthly * GREENLEAF_CONTEXTUAL_SHARE);
     const runOfSitePool = monthly - contextualPool;
-    if (advertiserSlug === "greenleaf-farms") return mtdImpressions(contextualPool, dayOfMonth);
-    if (advertiserSlug === "nutripeak-nutrition") return mtdImpressions(runOfSitePool, dayOfMonth);
-    return 0; // FreshFarm loses
+    if (advertiserSlug === "earthbound-farm") return mtdImpressions(contextualPool, dayOfMonth);
+    if (advertiserSlug === "liquid-iv") return mtdImpressions(runOfSitePool, dayOfMonth);
+    return 0; // Organic Valley loses
   }
 
   return 0;
@@ -154,9 +154,9 @@ const ATTR_RATES: Record<string, {
   crossSellRate: number;          // post-purchase cross-sell click rate (only on order confirmation)
   avgOrderValue: number;          // average basket value for attribution credit
 }> = {
-  "freshfarm-organics":  { ctr: 0.0012, clickConvRate: 0.042, viewThroughConvRate: 0.0032, crossSellRate: 0.062, avgOrderValue: 34.50 },
-  "nutripeak-nutrition": { ctr: 0.0010, clickConvRate: 0.038, viewThroughConvRate: 0.0028, crossSellRate: 0.055, avgOrderValue: 28.00 },
-  "greenleaf-farms":     { ctr: 0.0018, clickConvRate: 0.055, viewThroughConvRate: 0.0045, crossSellRate: 0.071, avgOrderValue: 41.20 }, // contextual = higher engagement
+  "organic-valley":  { ctr: 0.0012, clickConvRate: 0.042, viewThroughConvRate: 0.0032, crossSellRate: 0.062, avgOrderValue: 34.50 },
+  "liquid-iv":       { ctr: 0.0010, clickConvRate: 0.038, viewThroughConvRate: 0.0028, crossSellRate: 0.055, avgOrderValue: 28.00 },
+  "earthbound-farm": { ctr: 0.0018, clickConvRate: 0.055, viewThroughConvRate: 0.0045, crossSellRate: 0.071, avgOrderValue: 41.20 }, // contextual = higher engagement
 };
 
 // ── 3P discrepancy model ─────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ export async function GET() {
   let kevelFlightState: Record<number, { isActive: boolean; price: number }> = {};
   if (KEVEL_API_KEY) {
     try {
-      const campaignIds = [659158534, 659159072, 659159177]; // FreshFarm, NutriPeak, GreenLeaf
+      const campaignIds = [659171965, 659171966, 659171967]; // Organic Valley, Liquid I.V., Earthbound Farm
       const flightFetches = await Promise.allSettled(
         campaignIds.map(id => kevelGet(`campaign/${id}/flight`))
       );
@@ -220,7 +220,7 @@ export async function GET() {
 
   // Build per-advertiser measurement records
   const advertiserMeasurement = ADVERTISERS.map(adv => {
-    const rates = ATTR_RATES[adv.slug] ?? ATTR_RATES["freshfarm-organics"];
+    const rates = ATTR_RATES[adv.slug] ?? ATTR_RATES["organic-valley"];
 
     let totalImpressions = 0;
     let totalSpend = 0;

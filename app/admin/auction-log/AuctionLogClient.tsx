@@ -201,7 +201,7 @@ export default function AuctionLogClient({ initialData }: Props) {
             <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-sm">
               <div className="text-xs text-stone-400 mb-1">Contextual Win Rate</div>
               <div className="text-2xl font-bold text-emerald-600">{(summary.contextualWinRate * 100).toFixed(1)}%</div>
-              <div className="text-xs text-stone-400 mt-1">GreenLeaf contextual</div>
+              <div className="text-xs text-stone-400 mt-1">Earthbound Farm contextual</div>
             </div>
             <div className="bg-white border border-stone-200 rounded-xl p-4 shadow-sm">
               <div className="text-xs text-stone-400 mb-1">Avg Auction Latency</div>

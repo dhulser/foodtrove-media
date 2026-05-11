@@ -84,8 +84,8 @@ export async function GET() {
 
   try {
     // Known advertiser IDs from FoodTrove network 12024
-    const advertiserIds = [6254651, 6256255, 6256266];
-    const campaignIds = [659158534, 659159072, 659159177];
+    const advertiserIds = [6256813, 6256814, 6256815];
+    const campaignIds = [659171965, 659171966, 659171967];
 
     // Fetch all data in parallel
     const [advertisers, ...campaigns] = await Promise.all([
@@ -101,9 +101,9 @@ export async function GET() {
 
     // Known flight IDs per campaign
     const flightIdsByCampaign: Record<number, number[]> = {
-      659158534: [863187467, 863187590, 863188334],  // FreshFarm
-      659159072: [863188608, 863188610, 863188611],  // NutriPeak
-      659159177: [863188756, 863188757],             // GreenLeaf
+      659171965: [863229974, 863229975, 863229976],  // Organic Valley
+      659171966: [863229977, 863229978, 863229979],  // Liquid I.V.
+      659171967: [863229980, 863229981, 863229982],  // Earthbound Farm
     };
 
     // Fetch all flights in parallel

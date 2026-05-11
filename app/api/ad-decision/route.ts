@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Live ad placements — formats with mapped Kevel flights and creatives.
-  // FreshFarm Organics + NutriPeak Nutrition campaigns active on all three formats.
-  // billboard (970x250): flights 863187467 (FreshFarm) + 863188608 (NutriPeak) ✓
-  // leaderboard (728x90): flights 863187590 (FreshFarm) + 863188610 (NutriPeak) ✓
-  // medium-rectangle (300x250): flights 863188334 (FreshFarm) + 863188611 (NutriPeak) ✓
+  // Organic Valley + Liquid I.V. campaigns active on all three formats.
+  // billboard (970x250): flights 863229974 (Organic Valley) + 863229977 (Liquid I.V.) ✓
+  // leaderboard (728x90): flights 863229975 (Organic Valley) + 863229978 (Liquid I.V.) ✓
+  // medium-rectangle (300x250): flights 863229976 (Organic Valley) + 863229979 (Liquid I.V.) ✓
   // Other formats fall back gracefully — prevents wrong-sized creative rendering.
   const isLivePlacement =
     ["home-hero-billboard", "home-mid-leaderboard"].includes(placementId) ||
@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
   }
 
   // Keywords route ad requests to the correct Kevel flight by format.
-  // Billboard flight (863187467) requires "ft-billboard" keyword.
-  // Leaderboard flight (863187590) requires "ft-leaderboard" keyword.
-  // MRec flight (863188334) requires "ft-mrec" keyword.
+  // Billboard flight (863229974) requires "ft-billboard" keyword.
+  // Leaderboard flight (863229975) requires "ft-leaderboard" keyword.
+  // MRec flight (863229976) requires "ft-mrec" keyword.
   // Caller-supplied keywords (e.g. purchase signal from order confirmation) are merged in.
   const baseKeywords: string[] =
     size === "billboard" ? ["ft-billboard"] :

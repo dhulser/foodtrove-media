@@ -15,32 +15,33 @@ const KEVEL_API_KEY = process.env.KEVEL_API_KEY;
 const KEVEL_NETWORK_ID = process.env.KEVEL_NETWORK_ID ?? "12024";
 
 // Known advertiser IDs for FoodTrove network 12024
-const ADVERTISER_IDS = [6254651, 6256255, 6256266];
+const ADVERTISER_IDS = [6256813, 6256814, 6256815];
 
 // Known campaign IDs per advertiser
 const CAMPAIGN_IDS: Record<number, number[]> = {
-  6254651: [659158534],   // FreshFarm Organics
-  6256255: [659159072],   // NutriPeak Nutrition
-  6256266: [659159177],   // GreenLeaf Farms
+  6256813: [659171965],   // Organic Valley
+  6256814: [659171966],   // Liquid I.V.
+  6256815: [659171967],   // Earthbound Farm
 };
 
 // Known flight IDs per campaign
 const FLIGHT_IDS: Record<number, number[]> = {
-  659158534: [863187467, 863187590, 863188334],  // FreshFarm: billboard, leaderboard, mrec
-  659159072: [863188608, 863188610, 863188611],  // NutriPeak: billboard, leaderboard, mrec
-  659159177: [863188756, 863188757],              // GreenLeaf: leaderboard, mrec (contextual)
+  659171965: [863229974, 863229975, 863229976],  // Organic Valley: billboard, leaderboard, mrec
+  659171966: [863229977, 863229978, 863229979],  // Liquid I.V.: billboard, leaderboard, mrec
+  659171967: [863229980, 863229981, 863229982],  // Earthbound Farm: billboard, leaderboard, mrec (contextual)
 };
 
 // Known ad (creative map) IDs per flight
 const AD_IDS: Record<number, number[]> = {
-  863187467: [1081404207],
-  863187590: [1081437296],
-  863188334: [1081470449],
-  863188608: [1081471133],
-  863188610: [1081471134],
-  863188611: [1081471135],
-  863188756: [1081476545],
-  863188757: [1081476547],
+  863229974: [1081404207],
+  863229975: [1081437296],
+  863229976: [1081470449],
+  863229977: [1081471133],
+  863229978: [1081471134],
+  863229979: [1081471135],
+  863229980: [1081476545],
+  863229981: [1081476545],
+  863229982: [1081476547],
 };
 
 async function kevelGet(path: string) {

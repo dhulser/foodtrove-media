@@ -39,35 +39,35 @@ interface AdvertiserEntry {
   }[];
 }
 
-// Static data — represents the live Kevel state as of 2026-05-06
+// Static data — represents the live Kevel state as of 2026-05-11
 const ADVERTISERS: AdvertiserEntry[] = [
   {
-    id: 6254651,
-    name: "FreshFarm Organics",
+    id: 6256813,
+    name: "Organic Valley",
     color: "#15803d",
-    tagline: "Local organic produce and groceries",
+    tagline: "Organic dairy co-op, pasture-raised, farmer-owned since 1988, Wisconsin",
     campaigns: [
       {
-        id: 659158534,
-        name: "FreshFarm Organics — Test Q2 2026",
+        id: 659171965,
+        name: "Organic Valley — Q2 2026",
         isActive: true,
         flights: [
           {
-            id: 863187467, name: "FreshFarm — Homepage Billboard Q2 2026",
+            id: 863229974, name: "Organic Valley — Homepage Billboard Q2 2026",
             format: "billboard", formatLabel: "Billboard 970×250",
             keyword: "ft-billboard", cpm: 5.00,
             isActive: true, isUnlimited: true, impressions: 1000000,
             ads: [{ adId: 1081404207, creativeId: 905327348, percentage: 100, isActive: true }]
           },
           {
-            id: 863187590, name: "FreshFarm — Homepage Leaderboard Q2 2026",
+            id: 863229975, name: "Organic Valley — Homepage Leaderboard Q2 2026",
             format: "leaderboard", formatLabel: "Leaderboard 728×90",
             keyword: "ft-leaderboard", cpm: 5.00,
             isActive: true, isUnlimited: true, impressions: 1000000,
             ads: [{ adId: 1081437296, creativeId: 905360724, percentage: 100, isActive: true }]
           },
           {
-            id: 863188334, name: "FreshFarm — Product MRec Q2 2026",
+            id: 863229976, name: "Organic Valley — Product MRec Q2 2026",
             format: "mrec", formatLabel: "Medium Rectangle 300×250",
             keyword: "ft-mrec", cpm: 5.00,
             isActive: true, isUnlimited: true, impressions: 1000000,
@@ -78,32 +78,32 @@ const ADVERTISERS: AdvertiserEntry[] = [
     ],
   },
   {
-    id: 6256255,
-    name: "NutriPeak Nutrition",
+    id: 6256814,
+    name: "Liquid I.V.",
     color: "#0369a1",
-    tagline: "Premium sports nutrition and supplements",
+    tagline: "Hydration multiplier, Cellular Transport Technology, beverages/supplements, California",
     campaigns: [
       {
-        id: 659159072,
-        name: "NutriPeak — Launch Q2 2026",
+        id: 659171966,
+        name: "Liquid I.V. — Launch Q2 2026",
         isActive: true,
         flights: [
           {
-            id: 863188608, name: "NutriPeak — Billboard Q2 2026",
+            id: 863229977, name: "Liquid I.V. — Billboard Q2 2026",
             format: "billboard", formatLabel: "Billboard 970×250",
             keyword: "ft-billboard", cpm: 7.50,
             isActive: true, isUnlimited: true, impressions: 1000000,
             ads: [{ adId: 1081471133, creativeId: 905393443, percentage: 100, isActive: true }]
           },
           {
-            id: 863188610, name: "NutriPeak — Leaderboard Q2 2026",
+            id: 863229978, name: "Liquid I.V. — Leaderboard Q2 2026",
             format: "leaderboard", formatLabel: "Leaderboard 728×90",
             keyword: "ft-leaderboard", cpm: 6.50,
             isActive: true, isUnlimited: true, impressions: 1000000,
             ads: [{ adId: 1081471134, creativeId: 905393444, percentage: 100, isActive: true }]
           },
           {
-            id: 863188611, name: "NutriPeak — MRec Q2 2026",
+            id: 863229979, name: "Liquid I.V. — MRec Q2 2026",
             format: "mrec", formatLabel: "Medium Rectangle 300×250",
             keyword: "ft-mrec", cpm: 6.00,
             isActive: true, isUnlimited: true, impressions: 1000000,
@@ -114,25 +114,25 @@ const ADVERTISERS: AdvertiserEntry[] = [
     ],
   },
   {
-    id: 6256266,
-    name: "GreenLeaf Farms",
+    id: 6256815,
+    name: "Earthbound Farm",
     color: "#166534",
-    tagline: "Farm-fresh organic produce — contextual targeting",
+    tagline: "America's #1 organic salad brand, organic salads & produce, since 1984, California",
     campaigns: [
       {
-        id: 659159177,
-        name: "GreenLeaf — Spring Produce Q2 2026",
+        id: 659171967,
+        name: "Earthbound Farm — Spring Produce Q2 2026",
         isActive: true,
         flights: [
           {
-            id: 863188756, name: "GreenLeaf — Produce Leaderboard Q2 2026",
+            id: 863229981, name: "Earthbound Farm — Produce Leaderboard Q2 2026",
             format: "leaderboard", formatLabel: "Leaderboard 728×90",
             keyword: "ft-leaderboard,produce", cpm: 8.00,
             isActive: true, isUnlimited: true, impressions: 1000000,
             ads: [{ adId: 1081476545, creativeId: 905398803, percentage: 100, isActive: true }]
           },
           {
-            id: 863188757, name: "GreenLeaf — Produce MRec Q2 2026",
+            id: 863229982, name: "Earthbound Farm — Produce MRec Q2 2026",
             format: "mrec", formatLabel: "Medium Rectangle 300×250",
             keyword: "ft-mrec,produce", cpm: 7.50,
             isActive: true, isUnlimited: true, impressions: 1000000,

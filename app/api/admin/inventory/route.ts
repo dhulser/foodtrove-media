@@ -25,9 +25,9 @@ const KEVEL_NETWORK_ID = process.env.KEVEL_NETWORK_ID ?? "12024";
 
 // Known flight IDs per campaign — mirrors campaigns route
 const ALL_FLIGHT_IDS = [
-  863187467, 863187590, 863188334,  // FreshFarm: billboard, leaderboard, mrec
-  863188608, 863188610, 863188611,  // NutriPeak: billboard, leaderboard, mrec
-  863188756, 863188757,              // GreenLeaf: leaderboard, mrec
+  863229974, 863229975, 863229976,  // Organic Valley: billboard, leaderboard, mrec
+  863229977, 863229978, 863229979,  // Liquid I.V.: billboard, leaderboard, mrec
+  863229980, 863229981, 863229982,  // Earthbound Farm: billboard, leaderboard, mrec
 ];
 
 const FORMAT_META: Record<string, {

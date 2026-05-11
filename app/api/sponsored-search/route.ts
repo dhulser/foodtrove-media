@@ -22,8 +22,8 @@
  * Response:
  *   {
  *     "products": [...],
- *     "sponsoredBy": "FreshFarm Organics",
- *     "advertiserId": 6254651,
+ *     "sponsoredBy": "Organic Valley",
+ *     "advertiserId": 6256813,
  *     "source": "kevel" | "static",
  *     "impressionUrl": "https://..."
  *   }
@@ -37,16 +37,16 @@ const PLACEMENT_ID = "search-sponsored-shelf";
 
 // Advertiser ID → display brand name
 const ADVERTISER_BRAND_MAP: Record<number, string> = {
-  6254651: "FreshFarm Organics",
-  6256255: "NutriPeak Nutrition",
-  6256266: "GreenLeaf Farms",
+  6256813: "Organic Valley",
+  6256814: "Liquid I.V.",
+  6256815: "Earthbound Farm",
 };
 
 // Advertiser → category/tag signals for finding their best matching products
 const ADVERTISER_CATEGORY_MAP: Record<number, string[]> = {
-  6254651: ["produce", "dairy", "bakery", "organic", "fresh"],
-  6256255: ["snacks", "beverages", "protein", "nutrition", "health"],
-  6256266: ["produce", "organic", "fresh", "vegetables", "herbs"],
+  6256813: ["produce", "dairy", "bakery", "organic", "fresh"],
+  6256814: ["snacks", "beverages", "protein", "nutrition", "health"],
+  6256815: ["produce", "organic", "fresh", "vegetables", "herbs"],
 };
 
 function getAdvertiserProducts(

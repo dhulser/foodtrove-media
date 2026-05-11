@@ -30,9 +30,9 @@ const ADVERTISER_FLIGHTS: Record<
     monthlyImpressions: number;
   }[]
 > = {
-  "freshfarm-organics": [
+  "organic-valley": [
     {
-      flightId: 863187467,
+      flightId: 863229974,
       format: "billboard",
       formatLabel: "Billboard 970×250",
       cpm: 5.0,
@@ -41,7 +41,7 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 120_000,
     },
     {
-      flightId: 863187590,
+      flightId: 863229975,
       format: "leaderboard",
       formatLabel: "Leaderboard 728×90",
       cpm: 5.0,
@@ -50,7 +50,7 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 280_000,
     },
     {
-      flightId: 863188334,
+      flightId: 863229976,
       format: "mrec",
       formatLabel: "MRec 300×250",
       cpm: 5.0,
@@ -59,9 +59,9 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 420_000,
     },
   ],
-  "nutripeak-nutrition": [
+  "liquid-iv": [
     {
-      flightId: 863188608,
+      flightId: 863229977,
       format: "billboard",
       formatLabel: "Billboard 970×250",
       cpm: 7.5,
@@ -70,7 +70,7 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 120_000,
     },
     {
-      flightId: 863188610,
+      flightId: 863229978,
       format: "leaderboard",
       formatLabel: "Leaderboard 728×90",
       cpm: 6.5,
@@ -79,7 +79,7 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 280_000,
     },
     {
-      flightId: 863188611,
+      flightId: 863229979,
       format: "mrec",
       formatLabel: "MRec 300×250",
       cpm: 6.0,
@@ -88,9 +88,9 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 420_000,
     },
   ],
-  "greenleaf-farms": [
+  "earthbound-farm": [
     {
-      flightId: 863188756,
+      flightId: 863229981,
       format: "leaderboard",
       formatLabel: "Leaderboard 728×90 (Contextual)",
       cpm: 8.0,
@@ -99,7 +99,7 @@ const ADVERTISER_FLIGHTS: Record<
       monthlyImpressions: 280_000,
     },
     {
-      flightId: 863188757,
+      flightId: 863229982,
       format: "mrec",
       formatLabel: "MRec 300×250 (Contextual)",
       cpm: 7.5,
@@ -222,18 +222,18 @@ export async function GET(
   // Auction context: who else is competing on these formats?
   const AUCTION_CONTEXT: Record<string, { name: string; cpm: number }[]> = {
     billboard: [
-      { name: "FreshFarm Organics", cpm: 5.0 },
-      { name: "NutriPeak Nutrition", cpm: 7.5 },
+      { name: "Organic Valley", cpm: 5.0 },
+      { name: "Liquid I.V.", cpm: 7.5 },
     ],
     leaderboard: [
-      { name: "FreshFarm Organics", cpm: 5.0 },
-      { name: "NutriPeak Nutrition", cpm: 6.5 },
-      { name: "GreenLeaf Farms", cpm: 8.0 },
+      { name: "Organic Valley", cpm: 5.0 },
+      { name: "Liquid I.V.", cpm: 6.5 },
+      { name: "Earthbound Farm", cpm: 8.0 },
     ],
     mrec: [
-      { name: "FreshFarm Organics", cpm: 5.0 },
-      { name: "NutriPeak Nutrition", cpm: 6.0 },
-      { name: "GreenLeaf Farms", cpm: 7.5 },
+      { name: "Organic Valley", cpm: 5.0 },
+      { name: "Liquid I.V.", cpm: 6.0 },
+      { name: "Earthbound Farm", cpm: 7.5 },
     ],
   };
 
