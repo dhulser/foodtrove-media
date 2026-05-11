@@ -374,6 +374,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Ad Ops Workflow */}
+          <Link href="/admin/ops"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-fuchsia-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-fuchsia-50 group-hover:bg-fuchsia-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Ad Ops Workflow</div>
+                <div className="text-xs text-stone-400">Casey&apos;s Daily Queue</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Day-start action queue: pacing anomalies, creative approvals, budget runway warnings,
+              discrepancy alerts, and flight lifecycle events — prioritized by urgency.
+            </p>
+            <div className="mt-4 text-xs font-medium text-fuchsia-600 group-hover:text-fuchsia-700">
+              Open workflow →
+            </div>
+          </Link>
+
           {/* Network Settings */}
           <Link href="/admin/settings"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
@@ -434,7 +458,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 16 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 17 admin tools</span>
           </div>
         </div>
       </div>
