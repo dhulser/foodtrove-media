@@ -28,16 +28,16 @@ const KEVEL_NETWORK_ID = process.env.KEVEL_NETWORK_ID ?? "12024";
 export const EXPERIMENT_REGISTRY = [
   {
     id: "exp-001",
-    name: "GreenLeaf Contextual vs. Run-of-Site",
+    name: "Earthbound Farm Contextual vs. Run-of-Site",
     hypothesis:
-      "Contextual keyword targeting (produce dept) will outperform run-of-site placement on CPM and CTR for GreenLeaf Farms",
+      "Contextual keyword targeting (produce dept) will outperform run-of-site placement on CPM and CTR for Earthbound Farm",
     status: "active",
     startDate: "2026-05-06",
     endDate: null,
     type: "contextual_targeting",
     owner: "Kai Okafor",
-    advertiser: "GreenLeaf Farms",
-    advertiserId: 6256266,
+    advertiser: "Earthbound Farm",
+    advertiserId: 6256815,
     control: {
       label: "Run-of-site (all pages)",
       description: "No keyword targeting — competes on all ft-leaderboard/ft-mrec impressions",
@@ -48,7 +48,7 @@ export const EXPERIMENT_REGISTRY = [
     variant: {
       label: "Contextual targeting (produce dept)",
       description: "Keyword restricted to produce dept — higher CPM, qualified audience",
-      flightIds: [863188756, 863188757],
+      flightIds: [863229980, 863229981, 863229982],
       cpm: 7.75, // avg of $8.00 leaderboard + $7.50 mrec
       keywords: ["ft-leaderboard,produce", "ft-mrec,produce"],
     },
@@ -71,9 +71,9 @@ export const EXPERIMENT_REGISTRY = [
   },
   {
     id: "exp-002",
-    name: "NutriPeak vs. FreshFarm CPM Auction Competition",
+    name: "Liquid I.V. vs. Organic Valley CPM Auction Competition",
     hypothesis:
-      "Adding a second advertiser (NutriPeak, $6–7.50 CPM) will drive FreshFarm CPM up via auction pressure, increasing total network yield",
+      "Adding a second advertiser (Liquid I.V., $6–7.50 CPM) will drive Organic Valley CPM up via auction pressure, increasing total network yield",
     status: "active",
     startDate: "2026-05-06",
     endDate: null,
@@ -82,18 +82,18 @@ export const EXPERIMENT_REGISTRY = [
     advertiser: "Network-level",
     advertiserId: null,
     control: {
-      label: "Single advertiser (FreshFarm only)",
+      label: "Single advertiser (Organic Valley only)",
       description: "$5.00 CPM flat — no auction competition",
-      flightIds: [863187467, 863187590, 863188334],
+      flightIds: [863229974, 863229975, 863229976],
       cpm: 5.0,
       keywords: ["ft-billboard", "ft-leaderboard", "ft-mrec"],
     },
     variant: {
-      label: "Competitive auction (FreshFarm + NutriPeak)",
+      label: "Competitive auction (Organic Valley + Liquid I.V.)",
       description:
-        "NutriPeak at $6.00–7.50 CPM creates auction floor pressure — expected to push effective CPM toward higher bidder",
-      flightIds: [863188608, 863188610, 863188611],
-      cpm: 6.5, // blended avg NutriPeak
+        "Liquid I.V. at $6.00–7.50 CPM creates auction floor pressure — expected to push effective CPM toward higher bidder",
+      flightIds: [863229977, 863229978, 863229979],
+      cpm: 6.5, // blended avg Liquid I.V.
       keywords: ["ft-billboard", "ft-leaderboard", "ft-mrec"],
     },
     metrics: {
@@ -108,12 +108,12 @@ export const EXPERIMENT_REGISTRY = [
       winner: "variant",
     },
     notes:
-      "NutriPeak onboarded 2026-05-06. Auction competition confirmed — Decision API returning NutriPeak wins on all 3 formats. Effective CPM uplift ~36% vs. single-advertiser baseline.",
+      "Liquid I.V. onboarded 2026-05-06. Auction competition confirmed — Decision API returning Liquid I.V. wins on all 3 formats. Effective CPM uplift ~36% vs. single-advertiser baseline.",
     outcome: "variant_winning",
   },
   {
     id: "exp-003",
-    name: "GreenLeaf Post-Purchase Cross-Sell (Sponsored Products)",
+    name: "Earthbound Farm Post-Purchase Cross-Sell (Sponsored Products)",
     hypothesis:
       "Kevel-decisioned sponsored products on order confirmation — purchase intent signal → complementary brand — will yield higher CTR than static featured products",
     status: "active",
@@ -121,8 +121,8 @@ export const EXPERIMENT_REGISTRY = [
     endDate: null,
     type: "placement_position",
     owner: "Kai Okafor",
-    advertiser: "GreenLeaf Farms",
-    advertiserId: 6256266,
+    advertiser: "Earthbound Farm",
+    advertiserId: 6256815,
     control: {
       label: "Static featured products (no purchase signal)",
       description:
@@ -135,7 +135,7 @@ export const EXPERIMENT_REGISTRY = [
       label: "Kevel-decisioned sponsored products (purchase keywords)",
       description:
         "Purchase intent keywords from cart → Decision API → winning advertiser's catalog products shown as cross-sell",
-      flightIds: [863188756, 863188757],
+      flightIds: [863229980, 863229981],
       cpm: 7.75,
       keywords: ["purchase-signal", "produce"],
     },
@@ -164,19 +164,19 @@ export const EXPERIMENT_REGISTRY = [
     endDate: null,
     type: "format_allocation",
     owner: "Kai Okafor",
-    advertiser: "FreshFarm Organics",
-    advertiserId: 6254651,
+    advertiser: "Organic Valley",
+    advertiserId: 6256813,
     control: {
       label: "Billboard 970×250 (home-hero-billboard)",
-      description: "Above-fold, high-visibility placement — $5.00 CPM",
-      flightIds: [863187467],
-      cpm: 5.0,
+      description: "Above-fold, high-visibility placement — $7.00 CPM",
+      flightIds: [863229974],
+      cpm: 7.0,
       keywords: ["ft-billboard"],
     },
     variant: {
       label: "Leaderboard 728×90 (home-mid-leaderboard)",
-      description: "Mid-page, lower visibility — $5.00 CPM",
-      flightIds: [863187590],
+      description: "Mid-page, lower visibility — $6.00 CPM",
+      flightIds: [863229975],
       cpm: 5.0,
       keywords: ["ft-leaderboard"],
     },
@@ -200,17 +200,17 @@ export const EXPERIMENT_REGISTRY = [
     control: {
       label: "Run-of-site (standard shop pages)",
       description: "ft-billboard / ft-leaderboard / ft-mrec on /shop and /deals",
-      flightIds: [863187467, 863187590, 863188334, 863188608, 863188610, 863188611],
-      cpm: 5.83, // blended avg FreshFarm + NutriPeak
+      flightIds: [863229974, 863229975, 863229976, 863229977, 863229978, 863229979],
+      cpm: 6.17, // blended avg Organic Valley + Liquid I.V.
       keywords: ["ft-billboard", "ft-leaderboard", "ft-mrec"],
     },
     variant: {
       label: "Brand-keyword targeting (/brands/[slug] pages)",
       description:
-        "Placements on /brands/freshfarm-organics etc. pass brand slug as keyword — expected premium over run-of-site",
-      flightIds: [863187467, 863187590, 863188334, 863188608, 863188610, 863188611],
-      cpm: 7.0, // hypothesized premium
-      keywords: ["freshfarm-organics", "nutripeak-nutrition", "greenleaf-farms"],
+        "Placements on /brands/organic-valley etc. pass brand slug as keyword — expected premium over run-of-site",
+      flightIds: [863229974, 863229975, 863229976, 863229977, 863229978, 863229979],
+      cpm: 7.5, // hypothesized premium
+      keywords: ["organic-valley", "liquid-iv", "earthbound-farm"],
     },
     metrics: {
       controlImpressions: 227800,

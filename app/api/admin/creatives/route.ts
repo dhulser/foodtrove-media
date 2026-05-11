@@ -6,6 +6,11 @@
  *
  * Server-side only — KEVEL_API_KEY never leaves the server.
  *
+ * Advertisers (real brands, internal demo only):
+ *   Organic Valley  (6256813) — purple  — campaigns 659171965
+ *   Liquid I.V.     (6256814) — sky     — campaign 659171966
+ *   Earthbound Farm (6256815) — orange  — campaign 659171967
+ *
  * Response shape:
  *   { advertisers: AdvertiserCreatives[], meta: { totalCreatives, lastFetched } }
  */
@@ -13,53 +18,54 @@ import { NextResponse } from "next/server";
 
 const KEVEL_API_KEY = process.env.KEVEL_API_KEY;
 
-// Known advertiser IDs for FoodTrove network 12024
-const ADVERTISER_IDS = [6254651, 6256255, 6256266];
+// Advertiser IDs for FoodTrove network 12024 — real CPG brands (internal demo)
+const ADVERTISER_IDS = [6256813, 6256814, 6256815];
 
 const ADVERTISER_NAMES: Record<number, string> = {
-  6254651: "FreshFarm Organics",
-  6256255: "NutriPeak Nutrition",
-  6256266: "GreenLeaf Farms",
+  6256813: "Organic Valley",
+  6256814: "Liquid I.V.",
+  6256815: "Earthbound Farm",
 };
 
-// Known creative IDs per advertiser
+// Creative IDs per advertiser (Billboard, Leaderboard, MRec)
 const CREATIVE_IDS: Record<number, number[]> = {
-  6254651: [905327348, 905360724, 905392725],  // Billboard, Leaderboard, MRec
-  6256255: [905393443, 905393444, 905393445],  // Billboard, Leaderboard, MRec
-  6256266: [906821651, 906821652, 906821653],  // Billboard, Leaderboard, MRec
+  6256813: [906824269, 906824270, 906824271],  // OV: Billboard, Leaderboard, MRec
+  6256814: [906824272, 906824273, 906824274],  // LIV: Billboard, Leaderboard, MRec
+  6256815: [906824275, 906824276, 906824277],  // EBF: Billboard, Leaderboard, MRec
 };
 
 // Flight associations per creative (creative → [flightId, ...])
+// Note: /creative/map returns 404 on network 12024 — wire via Kevel dashboard
 const CREATIVE_FLIGHTS: Record<number, number[]> = {
-  905327348: [863187467],  // FreshFarm Billboard → billboard flight
-  905360724: [863187590],  // FreshFarm Leaderboard → leaderboard flight
-  905392725: [863188334],  // FreshFarm MRec → mrec flight
-  905393443: [863188608],  // NutriPeak Billboard
-  905393444: [863188610],  // NutriPeak Leaderboard
-  905393445: [863188611],  // NutriPeak MRec
-  906821651: [863188756],  // GreenLeaf Billboard
-  906821652: [863188757],  // GreenLeaf Leaderboard
-  906821653: [863188758],  // GreenLeaf MRec
+  906824269: [863229974],  // OV Billboard → flight
+  906824270: [863229975],  // OV Leaderboard → flight
+  906824271: [863229976],  // OV MRec → flight
+  906824272: [863229977],  // LIV Billboard → flight
+  906824273: [863229978],  // LIV Leaderboard → flight
+  906824274: [863229979],  // LIV MRec → flight
+  906824275: [863229980],  // EBF Billboard → flight
+  906824276: [863229981],  // EBF Leaderboard → flight
+  906824277: [863229982],  // EBF MRec → flight
 };
 
 // Human-readable format labels per creative
 const FORMAT_LABELS: Record<number, { size: string; format: string; dimensions: string }> = {
-  905327348: { size: "billboard", format: "Billboard", dimensions: "970×250" },
-  905360724: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
-  905392725: { size: "mrec", format: "MRec", dimensions: "300×250" },
-  905393443: { size: "billboard", format: "Billboard", dimensions: "970×250" },
-  905393444: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
-  905393445: { size: "mrec", format: "MRec", dimensions: "300×250" },
-  906821651: { size: "billboard", format: "Billboard", dimensions: "970×250" },
-  906821652: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90" },
-  906821653: { size: "mrec", format: "MRec", dimensions: "300×250" },
+  906824269: { size: "billboard",   format: "Billboard",   dimensions: "970×250" },
+  906824270: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90"  },
+  906824271: { size: "mrec",        format: "MRec",        dimensions: "300×250" },
+  906824272: { size: "billboard",   format: "Billboard",   dimensions: "970×250" },
+  906824273: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90"  },
+  906824274: { size: "mrec",        format: "MRec",        dimensions: "300×250" },
+  906824275: { size: "billboard",   format: "Billboard",   dimensions: "970×250" },
+  906824276: { size: "leaderboard", format: "Leaderboard", dimensions: "728×90"  },
+  906824277: { size: "mrec",        format: "MRec",        dimensions: "300×250" },
 };
 
 // CPM rates per advertiser per format
 const CPM_RATES: Record<number, Record<string, number>> = {
-  6254651: { billboard: 5.00, leaderboard: 5.00, mrec: 5.00 },
-  6256255: { billboard: 7.50, leaderboard: 6.50, mrec: 6.00 },
-  6256266: { billboard: 0, leaderboard: 8.00, mrec: 7.50 },
+  6256813: { billboard: 7.00, leaderboard: 6.00, mrec: 5.50 },
+  6256814: { billboard: 7.00, leaderboard: 6.00, mrec: 5.50 },
+  6256815: { billboard: 7.00, leaderboard: 6.00, mrec: 5.50 },
 };
 
 async function kevelGet(path: string) {
@@ -85,12 +91,12 @@ export interface CreativeDetail {
   advertiserName: string;
   isActive: boolean;
   isHTMLJS: boolean;
-  scriptBody: string;     // The HTML/JS creative content
+  scriptBody: string;
   adTypeId: number;
   flightIds: number[];
-  format: string;         // "Billboard" | "Leaderboard" | "MRec"
-  size: string;           // "billboard" | "leaderboard" | "mrec"
-  dimensions: string;     // "970×250" etc.
+  format: string;
+  size: string;
+  dimensions: string;
   cpm: number;
   lastModified?: string;
 }
@@ -98,14 +104,14 @@ export interface CreativeDetail {
 export interface AdvertiserCreatives {
   advertiserId: number;
   advertiserName: string;
-  color: string;           // Tailwind color token for UI
+  color: string;
   creatives: CreativeDetail[];
 }
 
 const ADVERTISER_COLORS: Record<number, string> = {
-  6254651: "amber",
-  6256255: "blue",
-  6256266: "teal",
+  6256813: "violet",
+  6256814: "sky",
+  6256815: "orange",
 };
 
 export async function GET() {
@@ -143,7 +149,6 @@ export async function GET() {
                 lastModified: data.LastModified ?? data.UpdatedAt,
               };
             } catch (err) {
-              // Return a stub if one creative fails — don't fail the whole response
               const fmt = FORMAT_LABELS[creativeId] ?? { size: "unknown", format: "Unknown", dimensions: "?" };
               return {
                 id: creativeId,

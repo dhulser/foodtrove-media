@@ -47,6 +47,28 @@ interface ApiResponse {
 }
 
 const COLOR_MAP: Record<string, { badge: string; ring: string; dot: string; tab: string; tabActive: string }> = {
+  violet: {
+    badge: "bg-violet-50 text-violet-700 border-violet-200",
+    ring: "ring-violet-200",
+    dot: "bg-violet-500",
+    tab: "text-violet-700 border-violet-500",
+    tabActive: "bg-violet-600 text-white",
+  },
+  sky: {
+    badge: "bg-sky-50 text-sky-700 border-sky-200",
+    ring: "ring-sky-200",
+    dot: "bg-sky-500",
+    tab: "text-sky-700 border-sky-500",
+    tabActive: "bg-sky-600 text-white",
+  },
+  orange: {
+    badge: "bg-orange-50 text-orange-700 border-orange-200",
+    ring: "ring-orange-200",
+    dot: "bg-orange-500",
+    tab: "text-orange-700 border-orange-500",
+    tabActive: "bg-orange-600 text-white",
+  },
+  // Legacy colors kept for fallback
   emerald: {
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
     ring: "ring-emerald-200",
