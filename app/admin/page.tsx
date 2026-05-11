@@ -351,6 +351,29 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Flight Ops Alerts */}
+          <Link href="/admin/alerts"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-red-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 group-hover:bg-red-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Flight Ops Alerts</div>
+                <div className="text-xs text-stone-400">Ad Ops · Casey</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Real-time alert feed: fill rate drops, pacing anomalies, creative health flags, budget runway warnings.
+              Severity-ranked with remediation actions. 5-minute refresh.
+            </p>
+            <div className="mt-4 text-xs font-medium text-red-600 group-hover:text-red-700">
+              Open alerts →
+            </div>
+          </Link>
+
         </div>
 
         {/* Quick links */}
@@ -386,7 +409,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 14 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 15 admin tools</span>
           </div>
         </div>
       </div>
