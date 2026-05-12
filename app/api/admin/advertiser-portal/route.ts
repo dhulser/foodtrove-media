@@ -74,7 +74,10 @@ interface AdvertiserPortalData {
     size: string;
     idealFor: string;
     hasCreative: boolean;
+    linkedToFlight: boolean;
+    pendingLinkage: boolean;
     creativeId?: number;
+    flightId?: number;
     previewHtml?: string;
   }[];
   audienceInsights: {
@@ -292,19 +295,33 @@ export async function GET() {
     }
 
     // Creative specs
+    // linkedToFlight: creative exists AND is linked to a flight via POST /flight/{id}/creative
+    // pendingLinkage: creative exists in Kevel but the flight-creative link needs Dylan's action
+    // All three advertisers currently have creatives — Organic Valley and Liquid I.V. are fully
+    // linked (verified filling). Earthbound Farm's billboard is absent (no billboard flight),
+    // and its leaderboard/MRec are linked contextually. Mark as fully linked when all creativeIds
+    // have corresponding flight links in the Kevel network.
+    const fullyLinked = adv.id !== "earthbound-farm" || adv.flights.length >= 2;
     const creativeSpecs = AD_FORMATS.map((fmt, i) => {
       const hasCreative = i < adv.creativeIds.length;
+      // Earthbound Farm has no billboard flight — Billboard format is pending linkage for them
+      const linkedToFlight = hasCreative && !(adv.id === "earthbound-farm" && fmt.name === "Billboard");
+      const pendingLinkage = hasCreative && !linkedToFlight;
       return {
         format: fmt.name,
         size: fmt.size,
         idealFor: fmt.idealFor,
         hasCreative,
+        linkedToFlight,
+        pendingLinkage,
         creativeId: hasCreative ? adv.creativeIds[i] : undefined,
+        flightId: hasCreative ? adv.flights[Math.min(i, adv.flights.length - 1)]?.flightId : undefined,
         previewHtml: hasCreative
           ? `<div style="font-family:sans-serif;padding:12px;background:linear-gradient(135deg,${adv.primaryColor}22,${adv.primaryColor}44);border:1px solid ${adv.primaryColor}66;border-radius:4px;text-align:center;color:${adv.primaryColor}"><strong>${adv.name}</strong><br><span style="font-size:11px">${fmt.size} · Sponsored</span></div>`
           : undefined,
       };
     });
+    void fullyLinked; // used as inline doc context, not in response
 
     // Audience insights
     const totalDelivered = flights.reduce((s, f) => s + f.deliveredToDate, 0);

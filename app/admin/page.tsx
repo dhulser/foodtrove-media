@@ -495,6 +495,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Budget Pacing */}
+          <Link href="/admin/budget-pacing"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 group-hover:bg-violet-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Budget Pacing</div>
+                <div className="text-xs text-stone-400">Spend projections · Tyler / Sales</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Per-flight spend trajectory: actual daily burn vs. required burn rate, end-of-flight
+              projected total vs. contracted budget. At-risk flags for under- and over-delivery.
+            </p>
+            <div className="mt-4 text-xs font-medium text-violet-600 group-hover:text-violet-700">
+              View projections →
+            </div>
+          </Link>
+
         </div>
 
         {/* Quick links */}

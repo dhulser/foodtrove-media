@@ -27,7 +27,10 @@ interface CreativeSpec {
   size: string;
   idealFor: string;
   hasCreative: boolean;
+  linkedToFlight: boolean;
+  pendingLinkage: boolean;
   creativeId?: number;
+  flightId?: number;
   previewHtml?: string;
 }
 
@@ -301,21 +304,47 @@ export default function AdvertiserPortalPage() {
 
         {/* Tab: Creatives */}
         {activeTab === "creatives" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="space-y-5">
+            {/* Pending linkage banner — shown when any creative needs Dylan's Kevel action */}
+            {adv.creativeSpecs.some((s) => s.pendingLinkage) && (
+              <div className="flex items-start gap-3 bg-amber-950/40 border border-amber-800/60 rounded-xl px-5 py-4">
+                <span className="text-amber-400 text-lg mt-0.5">⚠️</span>
+                <div>
+                  <div className="text-sm font-semibold text-amber-300 mb-1">
+                    Creative-to-flight linkage pending
+                  </div>
+                  <div className="text-sm text-amber-200/80 leading-relaxed">
+                    {adv.creativeSpecs.filter((s) => s.pendingLinkage).map((s) => s.format).join(", ")} creative
+                    {adv.creativeSpecs.filter((s) => s.pendingLinkage).length > 1 ? "s are" : " is"} uploaded in Kevel
+                    but not yet linked to a flight via{" "}
+                    <code className="text-amber-300 text-xs bg-amber-950/60 px-1 rounded">POST /flight/&#123;id&#125;/creative</code>.
+                    Ads will not serve until the link is established.
+                  </div>
+                  <div className="mt-2 text-xs text-amber-400/80">
+                    Action required: <strong>Dylan Hulser</strong> — complete flight-creative mapping in Kevel dashboard
+                    or contact Kai to run the API script.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {adv.creativeSpecs.map((spec) => (
-              <div key={spec.format} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+              <div key={spec.format} className={`bg-zinc-900 border rounded-xl p-5 ${spec.pendingLinkage ? "border-amber-800/50" : "border-zinc-800"}`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm font-semibold text-zinc-200">{spec.format}</div>
-                  {spec.hasCreative ? (
-                    <span className="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">Active</span>
-                  ) : (
+                  {!spec.hasCreative ? (
                     <span className="text-xs bg-zinc-800 text-zinc-500 border border-zinc-700 px-2 py-0.5 rounded-full">No creative</span>
+                  ) : spec.pendingLinkage ? (
+                    <span className="text-xs bg-amber-900/50 text-amber-400 border border-amber-800 px-2 py-0.5 rounded-full">Pending linkage</span>
+                  ) : (
+                    <span className="text-xs bg-emerald-900/50 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full">Active</span>
                   )}
                 </div>
                 <div className="text-xs text-zinc-500 mb-3">{spec.size} · {spec.idealFor}</div>
 
                 {spec.previewHtml ? (
-                  <div className="rounded-lg overflow-hidden border border-zinc-700 mb-3">
+                  <div className={`rounded-lg overflow-hidden border mb-3 ${spec.pendingLinkage ? "border-amber-800/40 opacity-60" : "border-zinc-700"}`}>
                     <iframe
                       srcDoc={spec.previewHtml}
                       className="w-full h-20"
@@ -329,8 +358,18 @@ export default function AdvertiserPortalPage() {
                   </div>
                 )}
 
+                {spec.pendingLinkage && (
+                  <div className="text-xs text-amber-500/80 mb-2 flex items-center gap-1">
+                    <span>⚡</span>
+                    <span>Flight linkage required before this creative can serve</span>
+                  </div>
+                )}
+
                 {spec.creativeId && (
                   <div className="text-xs text-zinc-600">Creative ID: {spec.creativeId}</div>
+                )}
+                {spec.flightId && spec.linkedToFlight && (
+                  <div className="text-xs text-zinc-600">Flight ID: {spec.flightId}</div>
                 )}
                 <div className="mt-3">
                   <Link
@@ -342,6 +381,7 @@ export default function AdvertiserPortalPage() {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
