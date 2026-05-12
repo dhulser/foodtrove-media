@@ -46,6 +46,15 @@ export default function Nav() {
               <span>Deals</span>
             </Link>
             <span className="w-px h-5 bg-stone-200 mx-1" />
+            {/* Weekly circular link */}
+            <Link
+              href="/weekly-deals"
+              className="flex items-center gap-1.5 px-3 h-full text-sm font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 whitespace-nowrap transition-colors border-b-2 border-transparent hover:border-amber-500"
+            >
+              <span className="text-base leading-none">📋</span>
+              <span>Weekly Circular</span>
+            </Link>
+            <span className="w-px h-5 bg-stone-200 mx-1" />
             {/* Brands link */}
             <Link
               href="/brands"
