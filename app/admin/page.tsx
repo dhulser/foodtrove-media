@@ -398,6 +398,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Billing & Invoicing */}
+          <Link href="/admin/billing"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-green-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-green-50 group-hover:bg-green-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Billing & Invoicing</div>
+                <div className="text-xs text-stone-400">Invoices · Make-Goods · Revenue</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Per-advertiser invoice reconciliation with delivery vs. booked impressions, make-good credits
+              for under-delivering flights, and net revenue by billing period.
+            </p>
+            <div className="mt-4 text-xs font-medium text-green-600 group-hover:text-green-700">
+              Open billing →
+            </div>
+          </Link>
+
           {/* Network Settings */}
           <Link href="/admin/settings"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
@@ -458,7 +482,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 17 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 18 admin tools</span>
           </div>
         </div>
       </div>

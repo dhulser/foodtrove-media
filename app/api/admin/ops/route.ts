@@ -29,14 +29,14 @@ interface FlightData {
   CampaignId: number;
 }
 
-interface AdverrtiserConfig {
+interface AdvertiserConfig {
   name: string;
   flightIds: number[];
   campaignIds: number[];
   formats: string[];
 }
 
-const ADVERTISERS: AdverrtiserConfig[] = [
+const ADVERTISERS: AdvertiserConfig[] = [
   { name: "Organic Valley", flightIds: [863187467, 863187590, 863188334], campaignIds: [12024001], formats: ["Billboard", "Leaderboard", "MRec"] },
   { name: "Liquid I.V.", flightIds: [863188400, 863188401], campaignIds: [12024002], formats: ["Billboard", "Leaderboard"] },
   { name: "Earthbound Farm", flightIds: [863188500, 863188501], campaignIds: [12024003], formats: ["MRec", "Leaderboard"] },
@@ -62,6 +62,37 @@ async function fetchFlightData(flightId: number): Promise<FlightData | null> {
   } catch {
     return null;
   }
+}
+
+// --- 3P discrepancy rolling window ---
+// Simulate a 3-day rolling average for each advertiser/format pair.
+// Each day is seeded on that day's bucket so it's stable within a day but varies across days.
+// The 3-day average is what triggers the alert — single-day spikes don't fire.
+interface DiscrepancyDaySample {
+  day: number; // 0 = today, 1 = yesterday, 2 = two days ago
+  value: number;
+}
+
+function getDiscrepancyRollingAvg(
+  advertiser: string,
+  format: string,
+  baseValue: number,
+  variance: number
+): { avg: number; samples: DiscrepancyDaySample[] } {
+  const samples: DiscrepancyDaySample[] = [];
+  const todayBucket = Math.floor(Date.now() / 86400000); // daily seed
+
+  for (let day = 0; day < 3; day++) {
+    const daySeed = (todayBucket - day) * 31 + advertiser.length * 17 + format.length * 7;
+    const dayRng = seededRandom(daySeed);
+    // Consume a few rng calls to get stable per-day values (avoid seed collisions)
+    dayRng(); dayRng();
+    const val = baseValue + dayRng() * variance - variance * 0.3;
+    samples.push({ day, value: Math.max(0, val) });
+  }
+
+  const avg = samples.reduce((sum, s) => sum + s.value, 0) / samples.length;
+  return { avg, samples };
 }
 
 export async function GET() {
@@ -186,55 +217,77 @@ export async function GET() {
     }
   }
 
-  // --- Discrepancy items ---
-  const discrepancyItems = [
-    { advertiser: "Earthbound Farm", format: "Billboard", discrepancy: 4.2 + rng() * 2.5 },
-    { advertiser: "Organic Valley", format: "MRec", discrepancy: 1.8 + rng() * 1.5 },
+  // --- 3P discrepancy items (3-day rolling window) ---
+  // Fix: alert only fires when the 3-day rolling average exceeds 5% threshold.
+  // Single-day spikes are normal measurement noise and should not trigger Casey's queue.
+  // A rolling average ensures the discrepancy is persistent, not a one-time pixel anomaly.
+  const discrepancyConfigs = [
+    { advertiser: "Earthbound Farm", format: "Billboard", baseValue: 4.2, variance: 2.5 },
+    { advertiser: "Organic Valley", format: "MRec", baseValue: 1.8, variance: 1.5 },
   ];
 
-  for (const d of discrepancyItems) {
-    if (d.discrepancy > 4.8) {
+  for (const d of discrepancyConfigs) {
+    const { avg, samples } = getDiscrepancyRollingAvg(d.advertiser, d.format, d.baseValue, d.variance);
+    if (avg > 5.0) {
+      const dayLabels = ["today", "yesterday", "2d ago"];
+      const sampleDesc = samples
+        .map((s) => `${dayLabels[s.day]}: ${s.value.toFixed(1)}%`)
+        .join(", ");
+      const vendor = ["DoubleVerify", "IAS", "Moat"][Math.floor(rng() * 3)];
       workflowItems.push({
         id: `discrepancy-${d.advertiser}-${d.format}`,
         priority: "critical",
         category: "discrepancy",
-        title: `${d.advertiser} ${d.format} — 3P discrepancy ${d.discrepancy.toFixed(1)}%`,
-        description: `Discrepancy vs. ${["DoubleVerify", "IAS", "Moat"][Math.floor(rng() * 3)]} exceeds 5% threshold. Requires root-cause investigation before billing cycle.`,
+        title: `${d.advertiser} ${d.format} — 3P discrepancy ${avg.toFixed(1)}% (3d avg)`,
+        description: `3-day rolling avg vs. ${vendor} is ${avg.toFixed(1)}% — above 5% threshold. Day breakdown: ${sampleDesc}. Persistent, not a spike — requires root-cause investigation before billing cycle.`,
         advertiser: d.advertiser,
         action: `Compare impression logs, check pixel fires, escalate to Kevel support if pixel issue`,
         actionLabel: "Investigate",
-        metric: { label: "Discrepancy", value: `${d.discrepancy.toFixed(1)}%`, trend: "up" },
+        metric: { label: "3d avg discrepancy", value: `${avg.toFixed(1)}%`, trend: "up" },
       });
     }
   }
 
   // --- Flight lifecycle items ---
-  interface EndingFlight { advertiser: string; format: string; endsInDays: number; flightId: number }
+  // Fix: "Ending within 3d" alert only fires if delivery rate is below 95%.
+  // An over-delivering or on-pace flight ending soon is not an ops concern —
+  // it delivered what was committed. Only under-delivery at end-of-flight is actionable.
+  interface EndingFlight { advertiser: string; format: string; endsInDays: number; flightId: number; deliveryPct: number }
   interface StartingFlight { advertiser: string; format: string; startsInDays: number; flightId: number }
 
   const endingFlights: EndingFlight[] = [
-    { advertiser: "Liquid I.V.", format: "MRec", endsInDays: Math.floor(1 + rng() * 4), flightId: 863188401 },
+    {
+      advertiser: "Liquid I.V.",
+      format: "MRec",
+      endsInDays: Math.floor(1 + rng() * 4),
+      flightId: 863188401,
+      // Delivery rate: simulated as a fraction of impression goal delivered by EoF
+      deliveryPct: 0.72 + rng() * 0.35, // range 0.72–1.07
+    },
   ];
   const startingFlights: StartingFlight[] = [
     { advertiser: "Earthbound Farm", format: "Leaderboard", startsInDays: Math.floor(1 + rng() * 3), flightId: 863188501 },
   ];
 
   for (const fl of endingFlights) {
-    if (fl.endsInDays <= 3) {
+    // Only fire if delivery is below 95% — on-pace or over-delivering flights ending soon are fine
+    const isUnderDelivering = fl.deliveryPct < 0.95;
+    if (fl.endsInDays <= 3 && isUnderDelivering) {
       workflowItems.push({
         id: `flight-ending-${fl.flightId}`,
         priority: fl.endsInDays <= 1 ? "high" : "medium",
         category: "flight",
-        title: `${fl.advertiser} ${fl.format} flight ending in ${fl.endsInDays}d`,
-        description: `Flight ${fl.flightId} scheduled to end. Confirm with ${fl.advertiser} on renewal or transition. If not renewing, coordinate with Tyler.`,
+        title: `${fl.advertiser} ${fl.format} flight ending in ${fl.endsInDays}d — ${Math.round(fl.deliveryPct * 100)}% delivered`,
+        description: `Flight ${fl.flightId} ends in ${fl.endsInDays}d at ${Math.round(fl.deliveryPct * 100)}% delivery. Risk of under-delivery on committed impressions. Coordinate with ${fl.advertiser} and Tyler on make-good or extension.`,
         advertiser: fl.advertiser,
         flightId: fl.flightId,
-        action: `Confirm end-of-flight plan with advertiser and Sales`,
+        action: `Confirm end-of-flight plan — make-good or extension if <95% at EoF`,
         actionLabel: "Flight end checklist",
         dueBy: `${fl.endsInDays}d`,
-        metric: { label: "Ends in", value: `${fl.endsInDays}d`, trend: "down" },
+        metric: { label: "Delivered", value: `${Math.round(fl.deliveryPct * 100)}%`, trend: "down" },
       });
     }
+    // If over-delivering or on pace: no alert needed — log it quietly
   }
 
   for (const fl of startingFlights) {
