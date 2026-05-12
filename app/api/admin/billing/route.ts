@@ -1,6 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const KEVEL_API_KEY = process.env.KEVEL_API_KEY || "";
+
+// --- In-memory note store (persists within a server session, survives across requests) ---
+// Key: invoiceNumber, Value: { notes, noteAddedAt, noteAddedBy, status override }
+interface NoteEntry {
+  notes: string;
+  noteAddedAt: string;
+  noteAddedBy: string;
+}
+interface StatusOverride {
+  status: "draft" | "ready" | "sent" | "paid";
+  updatedAt: string;
+}
+const noteStore = new Map<string, NoteEntry>();
+const statusStore = new Map<string, StatusOverride>();
 
 // --- Types ---
 interface InvoiceLineItem {
@@ -302,9 +316,10 @@ export async function GET() {
       finalizedAt,
       sentAt,
       paidAt,
-      notes: "",
-      noteAddedAt: null,
-      noteAddedBy: null,
+      // Merge persisted notes from in-memory store
+      notes: noteStore.get(invoiceNumber(advertiser.initials, periodKey, 1))?.notes ?? "",
+      noteAddedAt: noteStore.get(invoiceNumber(advertiser.initials, periodKey, 1))?.noteAddedAt ?? null,
+      noteAddedBy: noteStore.get(invoiceNumber(advertiser.initials, periodKey, 1))?.noteAddedBy ?? null,
       makeGoodPendingReview,
     });
   }
@@ -335,5 +350,75 @@ export async function GET() {
     invoices,
     liveCPMFromKevel: liveCPM !== null ? { flightId: 863187467, cpm: liveCPM } : null,
     generatedAt: new Date().toISOString(),
+  });
+}
+
+// --- POST /api/admin/billing ---
+// Persist notes and/or status overrides for an invoice.
+// Body: { invoiceNumber: string, notes?: string, noteAddedBy?: string, status?: string }
+export async function POST(request: NextRequest) {
+  let body: {
+    invoiceNumber?: string;
+    notes?: string;
+    noteAddedBy?: string;
+    status?: string;
+  };
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const { invoiceNumber: invoiceNum, notes, noteAddedBy, status } = body;
+
+  if (!invoiceNum || typeof invoiceNum !== "string") {
+    return NextResponse.json({ error: "invoiceNumber is required" }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+  const updatedFields: Record<string, unknown> = {};
+
+  // Persist note update
+  if (typeof notes === "string") {
+    const entry: NoteEntry = {
+      notes,
+      noteAddedAt: now,
+      noteAddedBy: typeof noteAddedBy === "string" && noteAddedBy ? noteAddedBy : "casey@foodtrovemedia.com",
+    };
+    noteStore.set(invoiceNum, entry);
+    updatedFields.notes = entry.notes;
+    updatedFields.noteAddedAt = entry.noteAddedAt;
+    updatedFields.noteAddedBy = entry.noteAddedBy;
+  }
+
+  // Persist status override
+  if (typeof status === "string") {
+    const validStatuses = ["draft", "ready", "sent", "paid"];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `status must be one of: ${validStatuses.join(", ")}` },
+        { status: 400 }
+      );
+    }
+    const override: StatusOverride = {
+      status: status as "draft" | "ready" | "sent" | "paid",
+      updatedAt: now,
+    };
+    statusStore.set(invoiceNum, override);
+    updatedFields.status = override.status;
+    updatedFields.statusUpdatedAt = override.updatedAt;
+  }
+
+  if (Object.keys(updatedFields).length === 0) {
+    return NextResponse.json({ error: "No fields to update. Provide notes and/or status." }, { status: 400 });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    invoiceNumber: invoiceNum,
+    updatedAt: now,
+    ...updatedFields,
+    message: "Invoice updated. Changes persist for the duration of this server session.",
   });
 }

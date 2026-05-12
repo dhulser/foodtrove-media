@@ -39,6 +39,9 @@ interface AdvertiserInvoice {
   paidAt: string | null;
   // Notes
   notes: string;
+  // Notes audit trail (added per Casey feedback 2026-05-12)
+  noteAddedAt: string | null;
+  noteAddedBy: string | null;
   // Make-good gate
   makeGoodPendingReview: boolean;
 }
@@ -101,6 +104,10 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
   const [loading, setLoading] = useState(false);
   // Notes state — keyed by advertiserId (client-side only for demo)
   const [notesState, setNotesState] = useState<Record<string, string>>({});
+  // Note save state — keyed by advertiserId: idle | saving | saved | error
+  const [noteSaveState, setNoteSaveState] = useState<Record<string, "idle" | "saving" | "saved" | "error">>({});
+  // Persisted note metadata (returned from POST) — keyed by advertiserId
+  const [noteMeta, setNoteMeta] = useState<Record<string, { noteAddedAt: string; noteAddedBy: string }>>({});
   // Make-good review confirmed — keyed by advertiserId
   const [makeGoodConfirmed, setMakeGoodConfirmed] = useState<Record<string, boolean>>({});
 
@@ -169,6 +176,8 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
             const notes = notesState[inv.advertiserId] ?? inv.notes;
             const mgConfirmed = makeGoodConfirmed[inv.advertiserId] ?? false;
             const canFinalize = !inv.makeGoodPendingReview || mgConfirmed;
+            const saveState = noteSaveState[inv.advertiserId] ?? "idle";
+            const savedMeta = noteMeta[inv.advertiserId] ?? null;
 
             return (
               <div key={inv.advertiserId} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
@@ -319,9 +328,72 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
                         onChange={(e) => {
                           e.stopPropagation();
                           setNotesState((prev) => ({ ...prev, [inv.advertiserId]: e.target.value }));
+                          // Reset save state on change
+                          setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "idle" }));
                         }}
                         onClick={(e) => e.stopPropagation()}
                       />
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-xs text-zinc-600">
+                          {savedMeta ? (
+                            <span className="text-zinc-500">
+                              Saved by {savedMeta.noteAddedBy} · {new Date(savedMeta.noteAddedAt).toLocaleString()}
+                            </span>
+                          ) : inv.noteAddedAt ? (
+                            <span className="text-zinc-500">
+                              Saved by {inv.noteAddedBy ?? "ops"} · {new Date(inv.noteAddedAt).toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-700">No notes saved yet</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentNotes = notesState[inv.advertiserId] ?? inv.notes;
+                            setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "saving" }));
+                            fetch("/api/admin/billing", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                invoiceNumber: inv.invoiceNumber,
+                                notes: currentNotes,
+                                noteAddedBy: "casey@foodtrovemedia.com",
+                              }),
+                            })
+                              .then((r) => r.json())
+                              .then((resp) => {
+                                if (resp.ok) {
+                                  setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "saved" }));
+                                  setNoteMeta((prev) => ({
+                                    ...prev,
+                                    [inv.advertiserId]: {
+                                      noteAddedAt: resp.noteAddedAt,
+                                      noteAddedBy: resp.noteAddedBy,
+                                    },
+                                  }));
+                                  // Reset to idle after 3 seconds
+                                  setTimeout(() => setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "idle" })), 3000);
+                                } else {
+                                  setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "error" }));
+                                }
+                              })
+                              .catch(() => setNoteSaveState((prev) => ({ ...prev, [inv.advertiserId]: "error" })));
+                          }}
+                          disabled={saveState === "saving"}
+                          className={`px-3 py-1 text-xs rounded font-medium transition-colors ${
+                            saveState === "saved"
+                              ? "bg-emerald-800 text-emerald-200 cursor-default"
+                              : saveState === "error"
+                              ? "bg-red-900 text-red-300 cursor-pointer"
+                              : saveState === "saving"
+                              ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+                              : "bg-zinc-700 hover:bg-zinc-600 text-zinc-200 cursor-pointer"
+                          }`}
+                        >
+                          {saveState === "saving" ? "Saving…" : saveState === "saved" ? "✓ Saved" : saveState === "error" ? "Save failed — retry" : "Save Notes"}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Invoice actions */}
