@@ -77,12 +77,17 @@ function getDiscrepancyRollingAvg(
   advertiser: string,
   format: string,
   baseValue: number,
-  variance: number
-): { avg: number; samples: DiscrepancyDaySample[] } {
+  variance: number,
+  daysLive: number = 3 // how many days the campaign has been running (1, 2, or 3+)
+): { avg: number; samples: DiscrepancyDaySample[]; windowDays: number } {
   const samples: DiscrepancyDaySample[] = [];
   const todayBucket = Math.floor(Date.now() / 86400000); // daily seed
 
-  for (let day = 0; day < 3; day++) {
+  // Clamp to available days — don't wait for 3 days of data before firing
+  // On day 1: use 1-day window. Day 2: 2-day window. Day 3+: full 3-day window.
+  const windowDays = Math.min(daysLive, 3);
+
+  for (let day = 0; day < windowDays; day++) {
     const daySeed = (todayBucket - day) * 31 + advertiser.length * 17 + format.length * 7;
     const dayRng = seededRandom(daySeed);
     // Consume a few rng calls to get stable per-day values (avoid seed collisions)
@@ -92,7 +97,7 @@ function getDiscrepancyRollingAvg(
   }
 
   const avg = samples.reduce((sum, s) => sum + s.value, 0) / samples.length;
-  return { avg, samples };
+  return { avg, samples, windowDays };
 }
 
 export async function GET() {
@@ -222,28 +227,33 @@ export async function GET() {
   // Single-day spikes are normal measurement noise and should not trigger Casey's queue.
   // A rolling average ensures the discrepancy is persistent, not a one-time pixel anomaly.
   const discrepancyConfigs = [
-    { advertiser: "Earthbound Farm", format: "Billboard", baseValue: 4.2, variance: 2.5 },
-    { advertiser: "Organic Valley", format: "MRec", baseValue: 1.8, variance: 1.5 },
+    { advertiser: "Earthbound Farm", format: "Billboard", baseValue: 4.2, variance: 2.5, daysLive: 3 },
+    { advertiser: "Organic Valley", format: "MRec", baseValue: 1.8, variance: 1.5, daysLive: 3 },
+    // Example new campaign on day 1 — fires immediately if discrepant (no 3-day wait)
+    { advertiser: "Liquid I.V.", format: "Leaderboard", baseValue: 6.8, variance: 1.2, daysLive: 1 },
   ];
 
   for (const d of discrepancyConfigs) {
-    const { avg, samples } = getDiscrepancyRollingAvg(d.advertiser, d.format, d.baseValue, d.variance);
+    const { avg, samples, windowDays } = getDiscrepancyRollingAvg(d.advertiser, d.format, d.baseValue, d.variance, d.daysLive);
     if (avg > 5.0) {
       const dayLabels = ["today", "yesterday", "2d ago"];
       const sampleDesc = samples
         .map((s) => `${dayLabels[s.day]}: ${s.value.toFixed(1)}%`)
         .join(", ");
       const vendor = ["DoubleVerify", "IAS", "Moat"][Math.floor(rng() * 3)];
+      const windowLabel = windowDays === 1 ? "1d" : windowDays === 2 ? "2d avg" : "3d avg";
       workflowItems.push({
         id: `discrepancy-${d.advertiser}-${d.format}`,
         priority: "critical",
         category: "discrepancy",
-        title: `${d.advertiser} ${d.format} — 3P discrepancy ${avg.toFixed(1)}% (3d avg)`,
-        description: `3-day rolling avg vs. ${vendor} is ${avg.toFixed(1)}% — above 5% threshold. Day breakdown: ${sampleDesc}. Persistent, not a spike — requires root-cause investigation before billing cycle.`,
+        title: `${d.advertiser} ${d.format} — 3P discrepancy ${avg.toFixed(1)}% (${windowLabel})`,
+        description: windowDays < 3
+          ? `${windowLabel} vs. ${vendor} is ${avg.toFixed(1)}% — above 5% threshold. Campaign is ${windowDays}d old; alert fires immediately on partial window. Day breakdown: ${sampleDesc}. Investigate before campaign runs further.`
+          : `3-day rolling avg vs. ${vendor} is ${avg.toFixed(1)}% — above 5% threshold. Day breakdown: ${sampleDesc}. Persistent, not a spike — requires root-cause investigation before billing cycle.`,
         advertiser: d.advertiser,
         action: `Compare impression logs, check pixel fires, escalate to Kevel support if pixel issue`,
         actionLabel: "Investigate",
-        metric: { label: "3d avg discrepancy", value: `${avg.toFixed(1)}%`, trend: "up" },
+        metric: { label: `${windowLabel} discrepancy`, value: `${avg.toFixed(1)}%`, trend: "up" },
       });
     }
   }

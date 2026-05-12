@@ -32,6 +32,15 @@ interface AdvertiserInvoice {
   makeGoodCredits: number;
   netTotal: number;
   status: string;
+  // Audit trail
+  draftedAt: string;
+  finalizedAt: string | null;
+  sentAt: string | null;
+  paidAt: string | null;
+  // Notes
+  notes: string;
+  // Make-good gate
+  makeGoodPendingReview: boolean;
 }
 
 interface BillingSummary {
@@ -61,6 +70,15 @@ function fmtImpressions(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(0)}K` : String(n);
 }
 
+function fmtTs(iso: string | null): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+    timeZoneName: "short",
+  });
+}
+
 function statusBadge(status: string) {
   const styles: Record<string, string> = {
     paid: "bg-emerald-900/60 text-emerald-300 border border-emerald-700",
@@ -81,6 +99,10 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
   const [data, setData] = useState<BillingData | null>(initialData);
   const [expandedInvoice, setExpandedInvoice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Notes state — keyed by advertiserId (client-side only for demo)
+  const [notesState, setNotesState] = useState<Record<string, string>>({});
+  // Make-good review confirmed — keyed by advertiserId
+  const [makeGoodConfirmed, setMakeGoodConfirmed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!initialData) {
@@ -144,6 +166,10 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
         <div className="space-y-4">
           {invoices.map((inv) => {
             const isExpanded = expandedInvoice === inv.advertiserId;
+            const notes = notesState[inv.advertiserId] ?? inv.notes;
+            const mgConfirmed = makeGoodConfirmed[inv.advertiserId] ?? false;
+            const canFinalize = !inv.makeGoodPendingReview || mgConfirmed;
+
             return (
               <div key={inv.advertiserId} className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
                 {/* Invoice header */}
@@ -182,7 +208,38 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
                 {/* Line items — expanded */}
                 {isExpanded && (
                   <div className="border-t border-zinc-800">
-                    <table className="w-full text-sm">
+
+                    {/* Make-good review banner — hard stop before finalize */}
+                    {inv.makeGoodPendingReview && !mgConfirmed && (
+                      <div className="mx-5 mt-4 rounded-lg border border-red-700 bg-red-950/50 px-4 py-3">
+                        <div className="flex items-start gap-3">
+                          <span className="text-red-400 text-lg mt-0.5">⚠</span>
+                          <div className="flex-1">
+                            <div className="font-semibold text-red-300 text-sm">Make-good credits require review before finalizing</div>
+                            <div className="text-red-400/80 text-xs mt-1">
+                              This invoice has {fmt(inv.makeGoodCredits)} in make-good credits applied. Loop in Tyler before sending — this context matters for the renewal conversation.
+                              The Finalize button is disabled until you confirm below.
+                            </div>
+                          </div>
+                          <button
+                            className="text-xs px-3 py-1.5 bg-red-700 hover:bg-red-600 text-white rounded font-medium transition-colors whitespace-nowrap"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMakeGoodConfirmed((prev) => ({ ...prev, [inv.advertiserId]: true }));
+                            }}
+                          >
+                            Confirm reviewed with Tyler
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {inv.makeGoodPendingReview && mgConfirmed && (
+                      <div className="mx-5 mt-4 rounded-lg border border-emerald-800 bg-emerald-950/30 px-4 py-2 flex items-center gap-2 text-xs text-emerald-400">
+                        <span>✓</span> Make-good credits reviewed — invoice ready to finalize
+                      </div>
+                    )}
+
+                    <table className="w-full text-sm mt-4">
                       <thead>
                         <tr className="bg-zinc-800/50">
                           <th className="text-left px-5 py-2.5 text-zinc-400 font-medium">Flight</th>
@@ -231,17 +288,58 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
                       </tfoot>
                     </table>
 
+                    {/* Audit trail timestamps */}
+                    <div className="mx-5 my-4 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3">
+                      <div className="text-xs font-semibold text-zinc-400 mb-2 uppercase tracking-wider">Audit Trail</div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                        {[
+                          { label: "Drafted", ts: inv.draftedAt },
+                          { label: "Finalized", ts: inv.finalizedAt },
+                          { label: "Sent", ts: inv.sentAt },
+                          { label: "Paid", ts: inv.paidAt },
+                        ].map(({ label, ts }) => (
+                          <div key={label}>
+                            <div className="text-zinc-500 mb-0.5">{label}</div>
+                            <div className={ts ? "text-zinc-300" : "text-zinc-600"}>{fmtTs(ts)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Notes field */}
+                    <div className="mx-5 mb-4">
+                      <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                        Invoice Notes
+                      </label>
+                      <textarea
+                        className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
+                        rows={3}
+                        placeholder="Add notes — why a credit was applied, anything unusual, context for Tyler…"
+                        value={notes}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setNotesState((prev) => ({ ...prev, [inv.advertiserId]: e.target.value }));
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+
                     {/* Invoice actions */}
                     <div className="px-5 py-3 border-t border-zinc-800/50 flex items-center justify-between bg-zinc-900">
                       <div className="text-xs text-zinc-500">
                         Invoice #{inv.invoiceNumber} · Generated {inv.invoiceDate} · Due {inv.dueDate}
-                        {inv.makeGoodCredits > 0 && (
-                          <span className="ml-3 text-amber-500">⚠ Make-good credits applied — review with Tyler before sending</span>
-                        )}
                       </div>
                       <div className="flex gap-2">
                         {inv.status === "draft" && (
-                          <button className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded text-xs font-medium transition-colors">
+                          <button
+                            disabled={!canFinalize}
+                            title={!canFinalize ? "Review make-good credits with Tyler first" : ""}
+                            className={`px-3 py-1.5 text-white rounded text-xs font-medium transition-colors ${
+                              canFinalize
+                                ? "bg-blue-700 hover:bg-blue-600 cursor-pointer"
+                                : "bg-blue-900/40 text-blue-400/50 cursor-not-allowed"
+                            }`}
+                          >
                             Finalize Invoice
                           </button>
                         )}
@@ -264,7 +362,7 @@ export default function BillingClient({ initialData }: { initialData: BillingDat
 
         {/* Make-good policy note */}
         <div className="bg-amber-950/30 border border-amber-900/50 rounded-lg px-5 py-4 text-sm text-amber-300/80">
-          <span className="font-semibold text-amber-300">Make-good policy:</span> Flights delivering &lt;95% of booked impressions receive a 50% credit on the shortfall at booked CPM. Credits are deducted from the invoice before billing. Flag make-good items to Tyler for renewal conversation context.
+          <span className="font-semibold text-amber-300">Make-good policy:</span> Flights delivering &lt;95% of booked impressions receive a 50% credit on the shortfall at booked CPM. Credits require Tyler review before invoices are finalized. Flagged invoices show a blocking banner — confirm reviewed before the Finalize button activates.
         </div>
 
       </div>

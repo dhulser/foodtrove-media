@@ -33,6 +33,15 @@ interface AdvertiserInvoice {
   makeGoodCredits: number;
   netTotal: number;
   status: "draft" | "ready" | "sent" | "paid";
+  // Audit trail — all four lifecycle timestamps
+  draftedAt: string;
+  finalizedAt: string | null;
+  sentAt: string | null;
+  paidAt: string | null;
+  // Notes — free text per invoice, for Casey's ops notes
+  notes: string;
+  // Make-good review gate — true if credits need review before finalizing
+  makeGoodPendingReview: boolean;
 }
 
 interface BillingSummary {
@@ -247,11 +256,28 @@ export async function GET() {
     }
 
     const subtotal = lineItems.reduce((s, li) => s + li.grossRevenue, 0);
-    const makeGoodCredits = lineItems.reduce((s, li) => s + li.makeGoodCredit, 0);
-    const netTotal = subtotal - makeGoodCredits;
+    const invoiceMakeGoodCredits = lineItems.reduce((s, li) => s + li.makeGoodCredit, 0);
+    const netTotal = subtotal - invoiceMakeGoodCredits;
 
     const invoiceDate = offsetDate(-3);
     const dueDate = offsetDate(27);
+
+    // Audit trail timestamps — simulate realistic lifecycle based on status
+    const draftedAt = new Date(Date.now() - 3 * 86400000).toISOString(); // 3 days ago
+    const finalizedAt =
+      advertiser.paymentStatus !== "draft"
+        ? new Date(Date.now() - 2 * 86400000).toISOString()
+        : null;
+    const sentAt =
+      advertiser.paymentStatus === "pending" || advertiser.paymentStatus === "paid"
+        ? new Date(Date.now() - 1 * 86400000).toISOString()
+        : null;
+    const paidAt =
+      advertiser.paymentStatus === "paid"
+        ? new Date(Date.now() - 6 * 3600000).toISOString() // paid 6 hours ago
+        : null;
+
+    const makeGoodPendingReview = invoiceMakeGoodCredits > 0 && advertiser.paymentStatus !== "paid";
 
     invoices.push({
       advertiserId: advertiser.id,
@@ -262,13 +288,19 @@ export async function GET() {
       dueDate,
       lineItems,
       subtotal: Math.round(subtotal * 100) / 100,
-      makeGoodCredits: Math.round(makeGoodCredits * 100) / 100,
+      makeGoodCredits: Math.round(invoiceMakeGoodCredits * 100) / 100,
       netTotal: Math.round(netTotal * 100) / 100,
       status: advertiser.paymentStatus === "paid"
         ? "paid"
         : advertiser.paymentStatus === "pending"
         ? "sent"
         : "draft",
+      draftedAt,
+      finalizedAt,
+      sentAt,
+      paidAt,
+      notes: "",
+      makeGoodPendingReview,
     });
   }
 
