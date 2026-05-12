@@ -447,6 +447,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Contextual Performance Report */}
+          <Link href="/admin/reporting"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 group-hover:bg-violet-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Contextual Performance</div>
+                <div className="text-xs text-stone-400">Keyword Attribution · CPM Lift</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Keyword-level revenue attribution and contextual CPM lift vs. run-of-site.
+              Shows which page contexts earn premium CPMs — Tyler&apos;s core sales narrative for new advertiser pitches.
+            </p>
+            <div className="mt-4 text-xs font-medium text-violet-600 group-hover:text-violet-700">
+              Open report →
+            </div>
+          </Link>
+
         </div>
 
         {/* Quick links */}
@@ -482,7 +506,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 18 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 19 admin tools</span>
           </div>
         </div>
       </div>

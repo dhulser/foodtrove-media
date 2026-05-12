@@ -40,6 +40,9 @@ interface AdvertiserInvoice {
   paidAt: string | null;
   // Notes — free text per invoice, for Casey's ops notes
   notes: string;
+  // Audit trail for notes (added per Casey feedback 2026-05-12)
+  noteAddedAt: string | null;
+  noteAddedBy: string | null;
   // Make-good review gate — true if credits need review before finalizing
   makeGoodPendingReview: boolean;
 }
@@ -300,6 +303,8 @@ export async function GET() {
       sentAt,
       paidAt,
       notes: "",
+      noteAddedAt: null,
+      noteAddedBy: null,
       makeGoodPendingReview,
     });
   }
