@@ -591,6 +591,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Pixel Manager */}
+          <Link href="/admin/pixels"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-violet-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 group-hover:bg-violet-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Pixel Manager</div>
+                <div className="text-xs text-stone-400">Conversion tags · Fire counts · Attribution · Casey / Sales</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Conversion pixel health per advertiser — fire counts (24h / 7d / 30d), last-fire timestamp,
+              attribution window config, and tag snippet delivery. Confirm tracking before campaign launch.
+            </p>
+            <div className="mt-4 text-xs font-medium text-violet-600 group-hover:text-violet-700">
+              Open pixel manager →
+            </div>
+          </Link>
+
         </div>
 
         {/* Quick links */}
@@ -626,7 +650,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 24 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 25 admin tools</span>
           </div>
         </div>
       </div>

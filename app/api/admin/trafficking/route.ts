@@ -54,7 +54,7 @@ const ADVERTISERS = [
     color: "orange",
     campaignId: 659171967,
     flights: [
-      { id: 863229980, format: "Billboard", formatKeyword: "ft-billboard", cpm: 0 }, // no active billboard flight
+      { id: 863237502, format: "Billboard", formatKeyword: "ft-billboard,produce,organic,fresh", cpm: 8.5 }, // created 2026-05-13
       { id: 863229981, format: "Leaderboard", formatKeyword: "ft-leaderboard,produce,organic,fresh", cpm: 8.0 },
       { id: 863229982, format: "MRec", formatKeyword: "ft-mrec,produce,organic,fresh", cpm: 7.5 },
     ],
@@ -137,34 +137,6 @@ export async function GET() {
   await Promise.all(
     ADVERTISERS.flatMap((adv) =>
       adv.flights.map(async (flightDef) => {
-        // Earthbound Farm billboard has no active flight — skip live fetch
-        if (adv.slug === "earthbound-farm" && flightDef.format === "Billboard") {
-          flights.push({
-            flightId: flightDef.id,
-            flightName: `${adv.name} — ${flightDef.format}`,
-            advertiserId: adv.id,
-            advertiserName: adv.name,
-            advertiserSlug: adv.slug,
-            advertiserColor: adv.color,
-            format: flightDef.format,
-            formatKeyword: flightDef.formatKeyword,
-            isActive: false,
-            isUnlimited: false,
-            impressions: 0,
-            price: 0,
-            keywords: "",
-            priorityId: 259929,
-            startDate: null,
-            noEndDate: true,
-            statusLabel: "no-flight",
-            hasFormatKeyword: false,
-            hasContextualKeyword: false,
-            contextualKeywords: [],
-            opsNote: "Billboard flight not yet created for Earthbound Farm. Contextual targeting only.",
-          });
-          return;
-        }
-
         try {
           const data = await kevelGet(`flight/${flightDef.id}`);
 
