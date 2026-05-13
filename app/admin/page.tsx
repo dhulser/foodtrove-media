@@ -615,6 +615,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Deal Desk */}
+          <Link href="/admin/deal-desk"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Deal Desk</div>
+                <div className="text-xs text-stone-400">IO management · Pipeline · Tyler / Sales</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Insertion order pipeline across all stages — prospect to live. IO line items with Kevel flight links,
+              delivery progress, weighted pipeline value, and deal notes.
+            </p>
+            <div className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700">
+              Open deal desk →
+            </div>
+          </Link>
+
           {/* Advertiser Onboarding */}
           <Link href="/admin/onboarding"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-rose-300 transition-all">
@@ -674,7 +698,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 25 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 27 admin tools</span>
           </div>
         </div>
       </div>
