@@ -4,6 +4,16 @@ import { useEffect, useState, useCallback } from "react";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
+interface AdvertiserStatus {
+  advertiserId: number;
+  advertiserName: string;
+  advertiserSlug: string;
+  advertiserColor: string;
+  isActive: boolean;
+  flightCount: number;
+  activeFlightCount: number;
+}
+
 interface FlightStatus {
   flightId: number;
   flightName: string;
@@ -30,6 +40,7 @@ interface FlightStatus {
 
 interface TraffickingData {
   flights: FlightStatus[];
+  advertisers: AdvertiserStatus[];
   summary: {
     total: number;
     active: number;
@@ -183,6 +194,72 @@ function KeywordsEditor({
         </button>
         {error && <span className="text-xs text-red-500">{error}</span>}
       </div>
+    </div>
+  );
+}
+
+// ─── Advertiser row component ──────────────────────────────────────────────────
+
+function AdvertiserRow({
+  adv,
+  colors,
+  onAction,
+}: {
+  adv: AdvertiserStatus;
+  colors: { bg: string; text: string; border: string; badge: string };
+  onAction: (advertiserId: number, action: "activate-advertiser" | "pause-advertiser") => Promise<void>;
+}) {
+  const [toggling, setToggling] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const handleToggle = async () => {
+    setToggling(true);
+    setResult(null);
+    try {
+      await onAction(adv.advertiserId, adv.isActive ? "pause-advertiser" : "activate-advertiser");
+      setResult({ ok: true, message: `Advertiser ${adv.isActive ? "paused" : "activated"} in Kevel. All flights affected.` });
+    } catch (e) {
+      setResult({ ok: false, message: String(e) });
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  return (
+    <div className={`px-5 py-3 flex items-center gap-4 ${adv.isActive ? "" : "bg-red-50/30"}`}>
+      <div className="flex-1">
+        <div className={`text-sm font-semibold ${colors.text}`}>{adv.advertiserName}</div>
+        <div className="text-xs text-stone-400">
+          ID: {adv.advertiserId} · {adv.activeFlightCount}/{adv.flightCount} flights active
+        </div>
+        {!adv.isActive && (
+          <div className="mt-1 text-xs text-red-600 font-medium">
+            ⛔ Account paused — all flights blocked from serving, regardless of flight-level status
+          </div>
+        )}
+        {result && (
+          <div className={`mt-1 text-xs ${result.ok ? "text-emerald-700" : "text-red-600"}`}>
+            {result.ok ? "✓ " : "✗ "}{result.message}
+          </div>
+        )}
+      </div>
+      <button
+        onClick={handleToggle}
+        disabled={toggling}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer select-none ${
+          adv.isActive
+            ? "bg-emerald-100 text-emerald-700 hover:bg-red-100 hover:text-red-700"
+            : "bg-red-100 text-red-700 hover:bg-emerald-100 hover:text-emerald-700"
+        } disabled:opacity-50`}
+        title={adv.isActive ? "Click to pause advertiser account" : "Click to activate advertiser account"}
+      >
+        {toggling ? (
+          <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+        ) : (
+          <span className={`w-1.5 h-1.5 rounded-full ${adv.isActive ? "bg-emerald-500" : "bg-red-500"}`} />
+        )}
+        {toggling ? "Updating…" : adv.isActive ? "Account Active" : "Account Paused"}
+      </button>
     </div>
   );
 }
@@ -427,6 +504,21 @@ export default function TraffickingClient() {
     return json;
   };
 
+  const handleAdvertiserAction = async (advertiserId: number, action: "activate-advertiser" | "pause-advertiser") => {
+    const res = await fetch("/api/admin/trafficking", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ advertiserId, action }),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) {
+      throw new Error(json.error ?? `HTTP ${res.status}`);
+    }
+    // Refresh data after successful action
+    await fetchData();
+    return json;
+  };
+
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -491,6 +583,31 @@ export default function TraffickingClient() {
           </div>
         ))}
       </div>
+
+      {/* Advertiser account status */}
+      {data.advertisers && data.advertisers.length > 0 && (
+        <div className="bg-white border border-stone-200 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-stone-100 flex items-center justify-between">
+            <div className="text-sm font-semibold text-stone-700">Advertiser Accounts</div>
+            <div className="text-xs text-stone-400">Advertiser-level IsActive — gates ALL flights for that account</div>
+          </div>
+          <div className="divide-y divide-stone-100">
+            {data.advertisers.map((adv) => {
+              const colors = ADVERTISER_COLORS[adv.advertiserSlug] ?? {
+                bg: "bg-stone-50", text: "text-stone-700", border: "border-stone-200", badge: "bg-stone-100 text-stone-700",
+              };
+              return (
+                <AdvertiserRow
+                  key={adv.advertiserId}
+                  adv={adv}
+                  colors={colors}
+                  onAction={handleAdvertiserAction}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Info strip */}
       <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-3 text-sm text-indigo-800">

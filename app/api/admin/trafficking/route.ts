@@ -6,8 +6,9 @@
  * update CPMs, and modify keyword targeting — without manually calling
  * the Kevel Management API.
  *
- * GET  /api/admin/trafficking  → all flights with live status
+ * GET  /api/admin/trafficking  → all flights with live status + advertiser IsActive
  * PUT  /api/admin/trafficking  → update flight (activate/pause, CPM, keywords)
+ * PATCH /api/admin/trafficking → update advertiser IsActive (activate/pause advertiser account)
  *
  * Only exposes the subset of Kevel flight fields that Ad Ops needs to modify.
  * Destructive operations (delete, budget zero-out) are not exposed here.
@@ -96,6 +97,17 @@ async function kevelPut(path: string, body: Record<string, unknown>) {
 
 // ─── Response types ───────────────────────────────────────────────────────────
 
+export interface AdvertiserStatus {
+  advertiserId: number;
+  advertiserName: string;
+  advertiserSlug: string;
+  advertiserColor: string;
+  isActive: boolean;
+  // Computed
+  flightCount: number;
+  activeFlightCount: number;
+}
+
 export interface FlightStatus {
   flightId: number;
   flightName: string;
@@ -133,6 +145,35 @@ export async function GET() {
   }
 
   const flights: FlightStatus[] = [];
+  const advertiserStatuses: AdvertiserStatus[] = [];
+
+  // Fetch advertiser-level IsActive for all 3 advertisers in parallel
+  await Promise.all(
+    ADVERTISERS.map(async (adv) => {
+      try {
+        const data = await kevelGet(`advertiser/${adv.id}`);
+        advertiserStatuses.push({
+          advertiserId: adv.id,
+          advertiserName: adv.name,
+          advertiserSlug: adv.slug,
+          advertiserColor: adv.color,
+          isActive: data.IsActive ?? false,
+          flightCount: adv.flights.length,
+          activeFlightCount: 0, // filled after flight fetch
+        });
+      } catch {
+        advertiserStatuses.push({
+          advertiserId: adv.id,
+          advertiserName: adv.name,
+          advertiserSlug: adv.slug,
+          advertiserColor: adv.color,
+          isActive: false,
+          flightCount: adv.flights.length,
+          activeFlightCount: 0,
+        });
+      }
+    })
+  );
 
   await Promise.all(
     ADVERTISERS.flatMap((adv) =>
@@ -227,8 +268,22 @@ export async function GET() {
   const opsNoteCount = flights.filter((f) => f.opsNote).length;
   const noFlightCount = flights.filter((f) => f.statusLabel === "no-flight").length;
 
+  // Backfill activeFlightCount on advertiserStatuses
+  advertiserStatuses.forEach((advStatus) => {
+    advStatus.activeFlightCount = flights.filter(
+      (f) => f.advertiserId === advStatus.advertiserId && f.isActive
+    ).length;
+  });
+
+  // Sort advertiserStatuses to match ADVERTISERS order
+  advertiserStatuses.sort((a, b) => {
+    return ADVERTISERS.findIndex((x) => x.id === a.advertiserId) -
+      ADVERTISERS.findIndex((x) => x.id === b.advertiserId);
+  });
+
   return NextResponse.json({
     flights,
+    advertisers: advertiserStatuses,
     summary: {
       total: flights.length,
       active: activeCount,
@@ -361,6 +416,83 @@ export async function PUT(request: NextRequest) {
   } catch (err) {
     return NextResponse.json(
       { error: `Kevel update failed: ${String(err).slice(0, 200)}` },
+      { status: 502 }
+    );
+  }
+}
+
+// ─── PATCH — update advertiser IsActive ──────────────────────────────────────
+
+export async function PATCH(request: NextRequest) {
+  if (!KEVEL_API_KEY) {
+    return NextResponse.json(
+      { error: "Missing KEVEL_API_KEY" },
+      { status: 503 }
+    );
+  }
+
+  let body: {
+    advertiserId?: number;
+    action?: "activate-advertiser" | "pause-advertiser";
+  };
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const { advertiserId, action } = body;
+
+  if (!advertiserId || !action) {
+    return NextResponse.json(
+      { error: "advertiserId and action are required" },
+      { status: 400 }
+    );
+  }
+
+  // Validate advertiserId is one we know about
+  const knownAdvertiserIds = ADVERTISERS.map((a) => a.id);
+  if (!knownAdvertiserIds.includes(advertiserId)) {
+    return NextResponse.json(
+      { error: `Unknown advertiserId ${advertiserId} — not in FoodTrove network registry` },
+      { status: 400 }
+    );
+  }
+
+  const adv = ADVERTISERS.find((a) => a.id === advertiserId)!;
+
+  // Fetch current advertiser state
+  let currentAdv: Record<string, unknown>;
+  try {
+    currentAdv = await kevelGet(`advertiser/${advertiserId}`);
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Failed to fetch advertiser ${advertiserId}: ${String(err).slice(0, 100)}` },
+      { status: 502 }
+    );
+  }
+
+  const newIsActive = action === "activate-advertiser";
+
+  try {
+    const updated = await kevelPut(`advertiser/${advertiserId}`, {
+      ...currentAdv,
+      IsActive: newIsActive,
+    });
+    return NextResponse.json({
+      ok: true,
+      action,
+      advertiserId,
+      advertiserName: adv.name,
+      updated: {
+        isActive: updated.IsActive,
+      },
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    return NextResponse.json(
+      { error: `Kevel advertiser update failed: ${String(err).slice(0, 200)}` },
       { status: 502 }
     );
   }
