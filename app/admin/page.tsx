@@ -543,6 +543,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Placement Yield Manager */}
+          <Link href="/admin/placements"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-lime-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-lime-50 group-hover:bg-lime-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-lime-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Placement Yield Manager</div>
+                <div className="text-xs text-stone-400">Fill rate · CPM · Revenue by slot · Casey / Tyler</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Complete inventory map of every Kevel ad slot across the storefront. Fill rate, realized CPM,
+              yield efficiency, and revenue per placement — with revenue upside callout for untargeted inventory.
+            </p>
+            <div className="mt-4 text-xs font-medium text-lime-600 group-hover:text-lime-700">
+              Open yield manager →
+            </div>
+          </Link>
+
         </div>
 
         {/* Quick links */}
