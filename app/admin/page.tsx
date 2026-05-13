@@ -543,6 +543,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Trafficking Console */}
+          <Link href="/admin/trafficking"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Trafficking Console</div>
+                <div className="text-xs text-stone-400">Activate · Pause · CPM · Keywords · Casey / Ad Ops</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Direct flight operations against Kevel Network 12024. Activate or pause flights, update
+              CPMs, and modify keyword targeting — without leaving the dashboard.
+            </p>
+            <div className="mt-4 text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
+              Open console →
+            </div>
+          </Link>
+
           {/* Placement Yield Manager */}
           <Link href="/admin/placements"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-lime-300 transition-all">
@@ -602,7 +626,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 22 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 24 admin tools</span>
           </div>
         </div>
       </div>
