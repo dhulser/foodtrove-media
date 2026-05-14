@@ -687,6 +687,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Multi-Touch Attribution */}
+          <Link href="/admin/attribution"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-purple-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Multi-Touch Attribution</div>
+                <div className="text-xs text-stone-400">Journey paths · Model comparison · Casey / Tyler</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Full shopper journey from first impression to purchase. Compare first-touch, last-touch,
+              linear, and time-decay models side-by-side. Latency distribution and cross-sell attribution.
+            </p>
+            <div className="mt-4 text-xs font-medium text-purple-600 group-hover:text-purple-700">
+              View attribution →
+            </div>
+          </Link>
+
           {/* Advertiser Onboarding */}
           <Link href="/admin/onboarding"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-rose-300 transition-all">
@@ -746,7 +770,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 29 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 30 admin tools</span>
           </div>
         </div>
       </div>
