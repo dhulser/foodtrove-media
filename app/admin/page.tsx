@@ -639,6 +639,30 @@ export default function AdminPage() {
             </div>
           </Link>
 
+          {/* Signal Intelligence */}
+          <Link href="/admin/signals"
+            className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-cyan-300 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 group-hover:bg-cyan-100 flex items-center justify-center transition-colors">
+                <svg className="h-5 w-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-stone-900">Signal Intelligence</div>
+                <div className="text-xs text-stone-400">1P Data · Tyler / Casey</div>
+              </div>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Live shopper purchase signals: trending categories, intent keywords, sponsored influence rate,
+              and advertiser targeting recommendations powered by FoodTrove 1P data. Tyler&apos;s pitch for new CPG brands.
+            </p>
+            <div className="mt-4 text-xs font-medium text-cyan-600 group-hover:text-cyan-700">
+              View signals →
+            </div>
+          </Link>
+
           {/* Advertiser Onboarding */}
           <Link href="/admin/onboarding"
             className="group bg-white border border-stone-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-rose-300 transition-all">
@@ -698,7 +722,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
             <span className="text-xs font-medium text-emerald-700">Kevel Network 12024 — Operational</span>
-            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 27 admin tools</span>
+            <span className="text-xs text-emerald-500 ml-auto">3 active advertisers · Organic Valley / Liquid I.V. / Earthbound Farm · 28 admin tools</span>
           </div>
         </div>
       </div>
